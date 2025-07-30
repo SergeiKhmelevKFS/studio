@@ -400,6 +400,7 @@ export const initialData: CardRecord[] = [
 ];
 
 const julyRecords: CardRecord[] = [];
+const startDate = new Date('2024-07-01');
 let currentId = 214;
 for (let i = 0; i < 31; i++) {
     const currentDate = new Date(startDate);
