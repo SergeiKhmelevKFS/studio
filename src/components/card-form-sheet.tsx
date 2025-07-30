@@ -66,7 +66,13 @@ export function CardFormSheet({
 
   useEffect(() => {
     if (open) {
-      form.reset(record || {});
+      // If we are creating a new record, generate a random staff ID
+      const initialValues = record ? record : {
+        ...cardSchema.partial().default,
+        staffId: `S-${Math.floor(100000 + Math.random() * 900000)}`,
+        companyName: 'B&Q',
+      };
+      form.reset(initialValues as CardRecord);
       setAddressValidationResult(null);
       setIsCardGenerated(!!record); // If editing a record, card is already generated
     }
