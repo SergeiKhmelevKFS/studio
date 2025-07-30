@@ -81,6 +81,7 @@ export default function DashboardPage() {
 
   const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false);
   const [selectedCardTransactions, setSelectedCardTransactions] = useState<TransactionRecord[]>([]);
+  const [selectedCardForTransactions, setSelectedCardForTransactions] = useState<CardRecord | null>(null);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -428,6 +429,7 @@ export default function DashboardPage() {
   
   const handleViewTransactions = (record: CardRecord) => {
     const cardTransactions = transactions.filter(t => t.cardRecordId === record.id);
+    setSelectedCardForTransactions(record);
     setSelectedCardTransactions(cardTransactions);
     setIsTransactionSheetOpen(true);
   };
@@ -763,6 +765,7 @@ export default function DashboardPage() {
         open={isTransactionSheetOpen}
         onOpenChange={setIsTransactionSheetOpen}
         transactions={selectedCardTransactions}
+        cardRecord={selectedCardForTransactions}
         />
     </div>
   );

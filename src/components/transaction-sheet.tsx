@@ -16,20 +16,23 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import type { TransactionRecord } from '@/lib/types';
+import type { CardRecord, TransactionRecord } from '@/lib/types';
 import { format } from 'date-fns';
 import { ScrollArea } from './ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 
 type TransactionSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transactions: TransactionRecord[];
+  cardRecord: CardRecord | null;
 };
 
 export function TransactionSheet({
   open,
   onOpenChange,
   transactions,
+  cardRecord,
 }: TransactionSheetProps) {
 
   return (
@@ -41,6 +44,17 @@ export function TransactionSheet({
             A list of recent transactions for the selected card.
           </SheetDescription>
         </SheetHeader>
+        {cardRecord && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>{cardRecord.primaryCardholderName}</CardTitle>
+                    <CardDescription>{cardRecord.primaryCardNumberBarcode}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground">Total Transactions: {transactions.length}</p>
+                </CardContent>
+            </Card>
+        )}
         <ScrollArea className="flex-1 rounded-md border">
           <Table>
             <TableHeader>
