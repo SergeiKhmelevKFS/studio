@@ -22,6 +22,11 @@ const getStatusSortValue = (record: CardRecord): number => {
     return 1; // Deactivated
 };
 
+type User = {
+    username: string;
+    role: string;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [records, setRecords] = useState<CardRecord[]>(initialData);
@@ -33,9 +38,9 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   
-  const isReadOnly = userRole === 'Fraud Analyst';
+  const isReadOnly = user?.role === 'Fraud Analyst';
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
@@ -45,7 +50,7 @@ export default function DashboardPage() {
     }
     const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
-        setUserRole(JSON.parse(storedUser).role);
+        setUser(JSON.parse(storedUser));
     }
   }, [router]);
 
@@ -138,7 +143,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} />
+      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} username={user?.username} />
       <main className="p-4 md:p-8">
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

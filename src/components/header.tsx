@@ -9,6 +9,7 @@ type HeaderProps = {
   onLogout: () => void;
   onProfileClick: () => void;
   isReadOnly: boolean;
+  username?: string;
 };
 
 const Logo = () => (
@@ -34,7 +35,7 @@ const Logo = () => (
   </svg>
 );
 
-export function Header({ onAdd, onLogout, onProfileClick, isReadOnly }: HeaderProps) {
+export function Header({ onAdd, onLogout, onProfileClick, isReadOnly, username }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
       <div className="flex items-center gap-3">
@@ -50,8 +51,9 @@ export function Header({ onAdd, onLogout, onProfileClick, isReadOnly }: HeaderPr
             <span className="hidden sm:inline">New Card</span>
             </Button>
         )}
-        <Button onClick={onProfileClick} variant="outline" size="icon">
+        <Button onClick={onProfileClick} variant="outline" className="gap-2">
             <User className="h-5 w-5" />
+            {username && <span className="hidden sm:inline">{username}</span>}
             <span className="sr-only">Profile</span>
         </Button>
         <Button onClick={onLogout} variant="outline" className="gap-2">
