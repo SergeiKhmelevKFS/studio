@@ -54,6 +54,7 @@ export const initialData: CardRecord[] = [
     primaryReplacementCardIssueDate: new Date('2023-08-20'),
     primaryPartCardNumberBarcode: 'P-9876',
     active: false,
+    reason: 'Card expired',
   },
   {
     id: '3',
@@ -81,5 +82,6 @@ export const initialData: CardRecord[] = [
     primaryReplacementCardIssueDate: undefined,
     primaryPartCardNumberBarcode: '',
     active: false,
+    reason: 'Left company',
   },
 ];

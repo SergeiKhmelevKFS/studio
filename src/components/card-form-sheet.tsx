@@ -41,6 +41,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, AlertCircle, Search, ChevronsUpDown } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Textarea } from '@/components/ui/textarea';
 
 
 type CardFormSheetProps = {
@@ -66,6 +67,8 @@ export function CardFormSheet({
     useState<ValidateAddressOutput | null>(null);
   const [isCardGenerated, setIsCardGenerated] = useState(false);
   const [isSecondaryCardGenerated, setIsSecondaryCardGenerated] = useState(false);
+
+  const isCardActive = form.watch('active');
 
   useEffect(() => {
     if (open) {
@@ -404,28 +407,50 @@ export function CardFormSheet({
                       </Button>
                     ) : (
                       <>
-                        {record && <FormField
-                          control={form.control}
-                          name="active"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                  Card Active
-                                </FormLabel>
-                                <FormDescription>
-                                  Deactivating the card will prevent its use.
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />}
+                        {record && 
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="active"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Card Active
+                                  </FormLabel>
+                                  <FormDescription>
+                                    Deactivating the card will prevent its use.
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          {!isCardActive && (
+                              <FormField
+                                control={form.control}
+                                name="reason"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Reason for deactivation</FormLabel>
+                                    <FormControl>
+                                      <Textarea
+                                        placeholder="Enter reason..."
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </div>
+                        }
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
                             control={form.control}
