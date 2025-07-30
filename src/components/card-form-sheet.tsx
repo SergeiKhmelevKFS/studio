@@ -62,11 +62,13 @@ export function CardFormSheet({
   const [isAddressValidating, setIsAddressValidating] = useState(false);
   const [addressValidationResult, setAddressValidationResult] =
     useState<ValidateAddressOutput | null>(null);
+  const [isCardGenerated, setIsCardGenerated] = useState(false);
 
   useEffect(() => {
     if (open) {
       form.reset(record || {});
       setAddressValidationResult(null);
+      setIsCardGenerated(!!record); // If editing a record, card is already generated
     }
   }, [open, record, form]);
 
@@ -84,6 +86,11 @@ export function CardFormSheet({
     });
     setAddressValidationResult(result);
     setIsAddressValidating(false);
+  };
+  
+  const handleGenerateCard = () => {
+    setIsCardGenerated(true);
+    // You might want to pre-fill some card details here in a real scenario
   };
 
   const onSubmit = (data: CardRecord) => {
@@ -201,7 +208,7 @@ export function CardFormSheet({
                       </CollapsibleTrigger>
                     </div>
                     <CollapsibleContent>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-4 pt-6">
                         <FormField
                           control={form.control}
                           name="add1"
@@ -368,107 +375,119 @@ export function CardFormSheet({
                     <CardTitle>Card Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="primaryCardNumberBarcode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Primary Card Number & Barcode</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="cardNumberEnding"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Card Number Ending</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Last 4 digits" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="validFrom"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Valid From</FormLabel>
-                            <DatePicker
-                              value={field.value}
-                              onChange={field.onChange}
-                              disabled
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="expires"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Expires On</FormLabel>
-                            <DatePicker
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="primaryCardIssueDate"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Primary Card Issue Date</FormLabel>
-                            <DatePicker
-                              value={field.value}
-                              onChange={field.onChange}
-                              disabled
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="primaryReplacementCardIssueDate"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Replacement Issue Date</FormLabel>
-                            <DatePicker
-                              value={field.value}
-                              onChange={field.onChange}
-                              disabled
-                            />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="cardsToIssue"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cards To Issue</FormLabel>
-                          <FormControl>
-                            <Input type="number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {!isCardGenerated && !record ? (
+                      <Button
+                        type="button"
+                        onClick={handleGenerateCard}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Card
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="primaryCardNumberBarcode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Primary Card Number & Barcode</FormLabel>
+                                <FormControl>
+                                  <Input {...field} disabled />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="cardNumberEnding"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Card Number Ending</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Last 4 digits" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="validFrom"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Valid From</FormLabel>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  disabled
+                                />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="expires"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Expires On</FormLabel>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="primaryCardIssueDate"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Primary Card Issue Date</FormLabel>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  disabled
+                                />
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="primaryReplacementCardIssueDate"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel>Replacement Issue Date</FormLabel>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  disabled
+                                />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="cardsToIssue"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cards To Issue</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
