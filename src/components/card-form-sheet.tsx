@@ -216,6 +216,7 @@ export function CardFormSheet({
                     />
                   </CardContent>
                 </Card>
+                </fieldset>
 
                 <Collapsible asChild>
                   <Card>
@@ -234,6 +235,7 @@ export function CardFormSheet({
                       </CollapsibleTrigger>
                     </div>
                     <CollapsibleContent>
+                    <fieldset disabled={isReadOnly} className="group">
                       <CardContent className="space-y-4 pt-6">
                         <FormField
                           control={form.control}
@@ -245,7 +247,6 @@ export function CardFormSheet({
                                 <Input
                                   placeholder="e.g. 123 Main St"
                                   {...field}
-                                  disabled
                                 />
                               </FormControl>
                               <FormMessage />
@@ -262,7 +263,6 @@ export function CardFormSheet({
                                 <Input
                                   placeholder="e.g. Apt 4B"
                                   {...field}
-                                  disabled
                                 />
                               </FormControl>
                             </FormItem>
@@ -278,7 +278,6 @@ export function CardFormSheet({
                                 <Input
                                   placeholder="e.g. Building C"
                                   {...field}
-                                  disabled
                                 />
                               </FormControl>
                             </FormItem>
@@ -295,7 +294,6 @@ export function CardFormSheet({
                                   <Input
                                     placeholder="e.g. London"
                                     {...field}
-                                    disabled
                                   />
                                 </FormControl>
                               </FormItem>
@@ -311,7 +309,6 @@ export function CardFormSheet({
                                   <Input
                                     placeholder="e.g. United Kingdom"
                                     {...field}
-                                    disabled
                                   />
                                 </FormControl>
                               </FormItem>
@@ -327,7 +324,6 @@ export function CardFormSheet({
                                   <Input
                                     placeholder="e.g. SW1A 0AA"
                                     {...field}
-                                    disabled
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -344,7 +340,6 @@ export function CardFormSheet({
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
@@ -354,10 +349,12 @@ export function CardFormSheet({
                           )}
                         />
                       </CardContent>
+                      </fieldset>
                     </CollapsibleContent>
                   </Card>
                 </Collapsible>
 
+                <fieldset disabled={isReadOnly} className="space-y-6 p-1 pr-6 group">
                 <Card>
                   <CardHeader>
                     <CardTitle>Primary Card Details</CardTitle>
