@@ -120,6 +120,11 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
                 {renderSortIcon('active')}
               </Button>
             </TableHead>
+             {isReadOnly && (
+                <TableHead>
+                    Suspected Transactions
+                </TableHead>
+            )}
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -144,6 +149,7 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
                   <TableCell className="hidden sm:table-cell">
                     <StatusBadge record={record} />
                   </TableCell>
+                  {isReadOnly && <TableCell></TableCell>}
                   <TableCell>
                     <Button
                       variant="outline"
@@ -162,7 +168,7 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center">
+              <TableCell colSpan={isReadOnly ? 8 : 7} className="h-24 text-center">
                 No records found.
               </TableCell>
             </TableRow>
