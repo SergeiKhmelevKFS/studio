@@ -483,41 +483,6 @@ export default function DashboardPage() {
                     <p className="text-muted-foreground">No potential card misuse detected.</p>
                 </div>
             )}
-
-            <h2 className="text-2xl font-bold tracking-tight mb-4">All Card Records</h2>
-            <div className="flex items-center justify-between mt-4 mb-4">
-                <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    placeholder="Search by Staff ID, Cardholder or Card Number..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setPage(0);
-                    }}
-                    className="w-full max-w-sm pl-10"
-                />
-                </div>
-            </div>
-            <CardTable
-                records={paginatedRecords}
-                onViewOrEdit={handleViewOrEdit}
-                onSort={handleSort}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                isReadOnly={isReadOnly}
-                onViewTransactions={handleViewTransactions}
-            />
-            <DataTablePagination
-                count={sortedRecords.length}
-                page={page}
-                onPageChange={setPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(value) => {
-                    setRowsPerPage(parseInt(value, 10));
-                    setPage(0);
-                }}
-            />
         </>
       ) : (
         !isReadOnly ? (
