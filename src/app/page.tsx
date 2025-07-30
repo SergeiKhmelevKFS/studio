@@ -59,7 +59,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
             <Logo />
-          <CardTitle className="text-2xl">B&Q Discount Card</CardTitle>
+          <CardTitle className="text-2xl">B&Q Discount Card Management System</CardTitle>
           <CardDescription>
             Enter your credentials to access your account.
           </CardDescription>

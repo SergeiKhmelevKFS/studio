@@ -37,7 +37,7 @@ export function Header({ onAdd, onLogout }: HeaderProps) {
       <div className="flex items-center gap-3">
         <Logo />
         <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          B&Q Discount Card
+          B&Q Discount Card Management System
         </h1>
       </div>
       <div className="flex items-center gap-2">
