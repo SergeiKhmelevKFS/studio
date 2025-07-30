@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Download } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +21,8 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { Switch } from '@/components/ui/switch';
+import { ReportTable } from '@/components/report-table';
+import * as XLSX from 'xlsx';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -99,20 +101,22 @@ export default function DashboardPage() {
   };
 
   const sortedRecords = useMemo(() => {
-    if (!sortColumn) return filteredRecords;
     const sorted = [...filteredRecords].sort((a, b) => {
       const aValue = a[sortColumn];
       const bValue = b[sortColumn];
+      
+      const aStatusValue = getStatusSortValue(a);
+      const bStatusValue = getStatusSortValue(b);
+
+      if (sortColumn === 'active') {
+        return sortDirection === 'asc' ? aStatusValue - bStatusValue : bStatusValue - aStatusValue;
+      }
 
       if (aValue === undefined || aValue === null) return 1;
       if (bValue === undefined || bValue === null) return -1;
 
       let comparison = 0;
-      if (sortColumn === 'active') {
-        const aStatusValue = getStatusSortValue(a);
-        const bStatusValue = getStatusSortValue(b);
-        comparison = aStatusValue - bStatusValue;
-      } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
         comparison = aValue.localeCompare(bValue);
       } else if (aValue instanceof Date && bValue instanceof Date) {
         comparison = aValue.getTime() - bValue.getTime();
@@ -217,6 +221,14 @@ export default function DashboardPage() {
     }, 1000);
   };
 
+  const handleExport = () => {
+    if (!reportData) return;
+    const worksheet = XLSX.utils.json_to_sheet(reportData.map(d => ({ Status: d.name, Total: d.total })));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    XLSX.writeFile(workbook, `${reportType}_report.xlsx`);
+  };
+
   const chartConfig = {
     total: {
       label: 'Total',
@@ -295,19 +307,24 @@ export default function DashboardPage() {
                 <DatePicker value={reportEndDate} onChange={setReportEndDate} disabled={isDateRangeDisabled} />
             </div>
         </div>
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
             <Button onClick={handleGenerateReport} disabled={isGeneratingReport}>
                 {isGeneratingReport && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Generate Report
             </Button>
+            <Button onClick={handleExport} disabled={!reportData || reportData.length === 0} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
         </div>
       </div>
-       <div className="h-96">
+       <div className="space-y-4">
         {isGeneratingReport ? (
-           <div className="flex items-center justify-center h-full border rounded-lg bg-gray-50">
+           <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
            </div>
         ) : reportData ? (
+          <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -351,7 +368,7 @@ export default function DashboardPage() {
                                 radius={4}
                             >
                                 {reportData.map((entry) => (
-                                    <Cell key={entry.name} fill={entry.fill} />
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -369,7 +386,7 @@ export default function DashboardPage() {
                                 strokeWidth={5}
                             >
                                  {reportData.map((entry) => (
-                                    <Cell key={entry.name} fill={entry.fill} className="stroke-background" />
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} className="stroke-background" />
                                 ))}
                             </Pie>
                              <ChartLegend
@@ -381,8 +398,10 @@ export default function DashboardPage() {
                 </ChartContainer>
             </CardContent>
           </Card>
+          <ReportTable data={reportData} />
+          </>
         ) : (
-          <div className="flex items-center justify-center h-full border rounded-lg bg-gray-50">
+          <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
               <p className="text-muted-foreground">Select report criteria and click "Generate Report".</p>
           </div>
         )}
