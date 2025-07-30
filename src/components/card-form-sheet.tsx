@@ -63,6 +63,7 @@ export function CardFormSheet({
   const [addressValidationResult, setAddressValidationResult] =
     useState<ValidateAddressOutput | null>(null);
   const [isCardGenerated, setIsCardGenerated] = useState(false);
+  const [isSecondaryCardGenerated, setIsSecondaryCardGenerated] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -75,6 +76,7 @@ export function CardFormSheet({
       form.reset(initialValues as CardRecord);
       setAddressValidationResult(null);
       setIsCardGenerated(!!record); // If editing a record, card is already generated
+      setIsSecondaryCardGenerated(!!record?.cardholderName2);
     }
   }, [open, record, form]);
 
@@ -101,6 +103,10 @@ export function CardFormSheet({
     form.setValue('primaryCardNumberBarcode', cardNumber);
     form.setValue('primaryCardIssueDate', new Date());
     setIsCardGenerated(true);
+  };
+
+  const handleGenerateSecondaryCard = () => {
+    setIsSecondaryCardGenerated(true);
   };
 
   const onSubmit = (data: CardRecord) => {
@@ -480,44 +486,60 @@ export function CardFormSheet({
                     <CardTitle>Secondary Card (Optional)</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="cardholderName2"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Secondary Cardholder Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. Jane Smith" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="cardNumber2"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Secondary Card Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="magStripe2"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Secondary Mag Stripe</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    {!isSecondaryCardGenerated ? (
+                      <Button
+                        type="button"
+                        onClick={handleGenerateSecondaryCard}
+                        disabled={!isCardGenerated}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Secondary Card
+                      </Button>
+                    ) : (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="cardholderName2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Secondary Cardholder Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. Jane Smith"
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="cardNumber2"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Secondary Card Number</FormLabel>
+                                <FormControl>
+                                  <Input {...field} disabled />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="magStripe2"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Secondary Mag Stripe</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
 
