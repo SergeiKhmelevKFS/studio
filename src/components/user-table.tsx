@@ -11,17 +11,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpDown } from 'lucide-react';
+import { Pencil, ArrowUpDown, Trash } from 'lucide-react';
 
 type UserTableProps = {
   users: UserRecord[];
   onEdit: (user: UserRecord) => void;
+  onDelete: (user: UserRecord) => void;
   onSort: (column: keyof UserRecord) => void;
   sortColumn: keyof UserRecord;
   sortDirection: 'asc' | 'desc';
 };
 
-export function UserTable({ users, onEdit, onSort, sortColumn, sortDirection }: UserTableProps) {
+export function UserTable({ users, onEdit, onDelete, onSort, sortColumn, sortDirection }: UserTableProps) {
     const renderSortIcon = (column: keyof UserRecord) => {
         if (sortColumn !== column) {
             return <ArrowUpDown className="ml-2 h-4 w-4" />;
@@ -60,14 +61,22 @@ export function UserTable({ users, onEdit, onSort, sortColumn, sortDirection }: 
               <TableRow key={user.username}>
                 <TableCell className="font-medium">{user.username}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
                     onClick={() => onEdit(user)}
                   >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                   <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => onDelete(user)}
+                  >
+                    <Trash className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>
               </TableRow>

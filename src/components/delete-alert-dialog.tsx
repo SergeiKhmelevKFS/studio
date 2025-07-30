@@ -15,21 +15,24 @@ type DeleteAlertDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
 };
 
 export function DeleteAlertDialog({
   open,
   onOpenChange,
   onConfirm,
+  title = "Are you absolutely sure?",
+  description = "This action cannot be undone. This will permanently delete the record from our servers."
 }: DeleteAlertDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the card
-            record from our servers.
+            {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download, UserPlus } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus, Trash } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +27,7 @@ import type { User, UserRecord } from '@/lib/users';
 import { users as defaultUsers } from '@/lib/users';
 import { UserTable } from '@/components/user-table';
 import { UserFormSheet } from '@/components/user-form-sheet';
+import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -68,6 +69,8 @@ export default function DashboardPage() {
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [userSortColumn, setUserSortColumn] = useState<keyof UserRecord>('username');
   const [userSortDirection, setUserSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [deletingUser, setDeletingUser] = useState<UserRecord | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -298,6 +301,20 @@ export default function DashboardPage() {
   const handleEditUser = (user: UserRecord) => {
     setEditingUser(user);
     setIsUserSheetOpen(true);
+  };
+
+  const handleDeleteUserClick = (user: UserRecord) => {
+    setDeletingUser(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteUser = () => {
+    if (!deletingUser) return;
+    const updatedUsers = users.filter(u => u.username !== deletingUser.username);
+    setUsers(updatedUsers);
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
+    setIsDeleteDialogOpen(false);
+    setDeletingUser(null);
   };
   
   const handleSaveUser = (userData: UserRecord) => {
@@ -578,6 +595,7 @@ export default function DashboardPage() {
       <UserTable
         users={sortedUsers}
         onEdit={handleEditUser}
+        onDelete={handleDeleteUserClick}
         onSort={handleUserSort}
         sortColumn={userSortColumn}
         sortDirection={userSortDirection}
@@ -631,6 +649,13 @@ export default function DashboardPage() {
         onOpenChange={setIsUserSheetOpen}
         user={editingUser}
         onSave={handleSaveUser}
+       />
+       <DeleteAlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleConfirmDeleteUser}
+        title={`Delete user ${deletingUser?.username}?`}
+        description="This action cannot be undone. This will permanently delete the user and all associated data."
        />
     </div>
   );
