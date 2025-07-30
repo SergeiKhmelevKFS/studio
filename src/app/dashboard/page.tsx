@@ -249,9 +249,9 @@ export default function DashboardPage() {
           }
         });
         setReportData([
-          { name: 'Active', total: active, fill: 'hsl(var(--chart-green))' },
-          { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
-          { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
+          { name: 'Active', total: active, fill: 'url(#gradient-active)' },
+          { name: 'Deactivated', total: deactivated, fill: 'url(#gradient-deactivated)' },
+          { name: 'Expired', total: expired, fill: 'url(#gradient-expired)' },
         ]);
       } else if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
         const dailyCounts: { [key: string]: number } = {};
@@ -490,6 +490,20 @@ export default function DashboardPage() {
                         if (reportType === 'card_statuses') {
                             return chartType === 'bar' ? (
                                 <BarChart accessibilityLayer data={reportData}>
+                                     <defs>
+                                        <linearGradient id="gradient-active" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-Active)" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="var(--color-Active)" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                        <linearGradient id="gradient-deactivated" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-Deactivated)" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="var(--color-Deactivated)" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                        <linearGradient id="gradient-expired" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--color-Expired)" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="var(--color-Expired)" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid vertical={false} />
                                     <XAxis
                                         dataKey="name"
@@ -526,7 +540,7 @@ export default function DashboardPage() {
                                         strokeWidth={5}
                                     >
                                          {reportData.map((entry) => (
-                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!} className="stroke-background" />
+                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!.replace('url(','').replace(')','')} className="stroke-background" />
                                         ))}
                                     </Pie>
                                      <ChartLegend
@@ -537,12 +551,28 @@ export default function DashboardPage() {
                             );
                         }
                         if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
-                            let barColor = "hsl(var(--chart-gray))";
-                            if (reportType === 'new_cards') barColor = "hsl(var(--chart-green))";
-                            if (reportType === 'expired_cards') barColor = "hsl(var(--chart-red))";
+                            let gradientId = "gradient-gray";
+                            if (reportType === 'new_cards') gradientId = "gradient-green";
+                            if (reportType === 'expired_cards') gradientId = "gradient-red";
+                            if (reportType === 'deactivated_cards') gradientId = "gradient-gray";
+
 
                             return (
                                 <BarChart accessibilityLayer data={reportData}>
+                                    <defs>
+                                        <linearGradient id="gradient-green" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--chart-green))" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="hsl(var(--chart-green))" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                         <linearGradient id="gradient-red" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--chart-red))" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="hsl(var(--chart-red))" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                         <linearGradient id="gradient-gray" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--chart-gray))" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="hsl(var(--chart-gray))" stopOpacity={0.2}/>
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid vertical={false} />
                                     <XAxis
                                         dataKey="name"
@@ -561,7 +591,7 @@ export default function DashboardPage() {
                                     />
                                     <Bar
                                         dataKey="total"
-                                        fill={barColor}
+                                        fill={`url(#${gradientId})`}
                                         radius={4}
                                     />
                                 </BarChart>
