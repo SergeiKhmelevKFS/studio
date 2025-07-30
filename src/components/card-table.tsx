@@ -57,7 +57,7 @@ export function CardTable({ records, onEdit, onDelete }: CardTableProps) {
                     {record.primaryCardholderName}
                   </TableCell>
                   <TableCell className="hidden font-mono lg:table-cell">
-                    **** **** **** {record.cardNumberEnding}
+                    {record.primaryCardNumberBarcode}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     {format(record.expires, 'MMM yyyy')}
