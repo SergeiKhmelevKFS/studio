@@ -1,5 +1,5 @@
 
-import type { CardRecord } from './types';
+import type { CardRecord, TransactionRecord } from './types';
 
 export const initialData: CardRecord[] = [
   {
@@ -536,3 +536,50 @@ for (let i = 0; i < 5; i++) { // From July 1 to 5
     }
 }
 initialData.push(...july2025DailyRecords);
+
+export const initialTransactions: TransactionRecord[] = [
+  {
+    id: 'txn1',
+    cardRecordId: '1',
+    cardNumber: '635666123456',
+    transaction_datetime: new Date('2024-07-20T10:30:00'),
+    transaction_store: 'B&Q London',
+    transaction_amount: 150.75,
+    transaction_discount: 15.08,
+    payer_name: 'Alice Johnson',
+    payer_card_number: '**** **** **** 1111',
+  },
+  {
+    id: 'txn2',
+    cardRecordId: '4',
+    cardNumber: '635666345678',
+    transaction_datetime: new Date('2024-07-21T14:00:00'),
+    transaction_store: 'B&Q New York',
+    transaction_amount: 75.50,
+    transaction_discount: 7.55,
+    payer_name: 'Ethan Hunt',
+    payer_card_number: '**** **** **** 2222',
+  },
+  {
+    id: 'txn3',
+    cardRecordId: '6',
+    cardNumber: '635666567890',
+    transaction_datetime: new Date('2024-07-21T18:45:00'),
+    transaction_store: 'B&Q Berlin',
+    transaction_amount: 210.00,
+    transaction_discount: 21.00,
+    payer_name: 'George Green',
+    payer_card_number: '**** **** **** 3333',
+  },
+  {
+    id: 'txn4',
+    cardRecordId: '1',
+    cardNumber: '635666123456',
+    transaction_datetime: new Date('2024-07-22T09:15:00'),
+    transaction_store: 'B&Q Manchester',
+    transaction_amount: 89.99,
+    transaction_discount: 9.00,
+    payer_name: 'Alice Johnson',
+    payer_card_number: '**** **** **** 1111',
+  },
+];

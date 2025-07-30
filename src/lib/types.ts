@@ -32,3 +32,17 @@ export const cardSchema = z.object({
 });
 
 export type CardRecord = z.infer<typeof cardSchema>;
+
+export const transactionSchema = z.object({
+  id: z.string(),
+  cardRecordId: z.string(),
+  cardNumber: z.string(),
+  transaction_datetime: z.coerce.date(),
+  transaction_store: z.string(),
+  transaction_amount: z.number(),
+  transaction_discount: z.number(),
+  payer_name: z.string(),
+  payer_card_number: z.string(),
+});
+
+export type TransactionRecord = z.infer<typeof transactionSchema>;
