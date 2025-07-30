@@ -13,6 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/date-picker';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -40,6 +44,9 @@ export default function DashboardPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [user, setUser] = useState<User | null>(null);
+  const [reportType, setReportType] = useState('');
+  const [reportStartDate, setReportStartDate] = useState<Date | undefined>();
+  const [reportEndDate, setReportEndDate] = useState<Date | undefined>();
   
   const isReadOnly = user?.role === 'Fraud Analyst';
 
@@ -176,6 +183,41 @@ export default function DashboardPage() {
     </>
   );
 
+  const reportingView = (
+    <div className="pt-4">
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="grid gap-2 w-full sm:w-64">
+          <Label htmlFor="report-type">Report Type</Label>
+          <Select value={reportType} onValueChange={setReportType}>
+            <SelectTrigger id="report-type">
+              <SelectValue placeholder="Select a report" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="card_statuses">Card Statuses</SelectItem>
+              <SelectItem value="new_cards">New Cards</SelectItem>
+              <SelectItem value="deactivated_cards">Deactivated Cards</SelectItem>
+              <SelectItem value="expired_cards">Expired Cards</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-2">
+            <Label>Date Range</Label>
+            <div className="flex items-center gap-2">
+                <DatePicker value={reportStartDate} onChange={setReportStartDate} />
+                <span className="text-muted-foreground">to</span>
+                <DatePicker value={reportEndDate} onChange={setReportEndDate} />
+            </div>
+        </div>
+        <div className="flex items-end">
+            <Button>Generate Report</Button>
+        </div>
+      </div>
+       <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
+          <p className="text-muted-foreground">Report results will be displayed here.</p>
+       </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen w-full bg-background">
       <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} username={user?.username} />
@@ -190,9 +232,7 @@ export default function DashboardPage() {
               {cardsAndUsersView}
             </TabsContent>
             <TabsContent value="reporting">
-              <div className="flex items-center justify-center h-96">
-                <p className="text-muted-foreground">The reporting tab is currently empty.</p>
-              </div>
+              {reportingView}
             </TabsContent>
           </Tabs>
         ) : (
@@ -213,3 +253,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
