@@ -400,11 +400,11 @@ export const initialData: CardRecord[] = [
 ];
 
 const julyRecords: CardRecord[] = [];
-const startDate = new Date('2024-07-01');
+const startDateJuly = new Date('2024-07-01');
 let currentId = 214;
 for (let i = 0; i < 31; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + i);
+    const currentDate = new Date(startDateJuly);
+    currentDate.setDate(startDateJuly.getDate() + i);
 
     for (let j = 0; j < 3; j++) {
         const staffId = (300000 + currentId).toString();
@@ -583,3 +583,44 @@ export const initialTransactions: TransactionRecord[] = [
     payer_card_number: '**** **** **** 1111',
   },
 ];
+
+const randomNames = [
+    'Olivia Smith', 'Liam Johnson', 'Emma Williams', 'Noah Brown', 'Ava Jones',
+    'Oliver Garcia', 'Isabella Miller', 'Elijah Davis', 'Sophia Rodriguez',
+    'James Martinez', 'Charlotte Hernandez', 'William Lopez', 'Amelia Gonzalez',
+    'Benjamin Wilson', 'Mia Anderson', 'Lucas Thomas', 'Harper Taylor',
+    'Henry Moore', 'Evelyn Jackson', 'Alexander White', 'Abigail Harris',
+    'Michael Martin', 'Emily Thompson', 'Daniel Garcia', 'Ella Martinez',
+    'Jacob Robinson', 'Madison Clark', 'Logan Rodriguez', 'Avery Lewis',
+    'Jackson Lee', 'Scarlett Walker', 'Sebastian Hall', 'Grace Allen',
+    'Jack Young', 'Chloe King', 'Aiden Wright', 'Lily Scott', 'Owen Green',
+    'Zoe Adams', 'Samuel Baker', 'Hannah Nelson', 'Matthew Carter', 'Nora Mitchell',
+    'Joseph Perez', 'Riley Roberts', 'David Turner', 'Eleanor Phillips', 'Carter Campbell'
+];
+
+const stores = [
+    'B&Q London', 'B&Q Manchester', 'B&Q Birmingham', 'B&Q Glasgow',
+    'B&Q New York', 'B&Q Los Angeles', 'B&Q Chicago', 'B&Q Houston',
+    'B&Q Berlin', 'B&Q Munich', 'B&Q Hamburg', 'B&Q Frankfurt',
+    'B&Q Paris', 'B&Q Marseille', 'B&Q Lyon', 'B&Q Toulouse'
+];
+
+for (let i = 0; i < 100; i++) {
+    const cardRecord = initialData[Math.floor(Math.random() * initialData.length)];
+    const transactionAmount = parseFloat((Math.random() * 500 + 20).toFixed(2));
+    const payerName = i < 50
+        ? cardRecord.primaryCardholderName
+        : randomNames[Math.floor(Math.random() * randomNames.length)];
+
+    initialTransactions.push({
+        id: `txn_gen_${i + 5}`,
+        cardRecordId: cardRecord.id!,
+        cardNumber: cardRecord.primaryCardNumberBarcode,
+        transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+        transaction_store: stores[Math.floor(Math.random() * stores.length)],
+        transaction_amount: transactionAmount,
+        transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
+        payer_name: payerName,
+        payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+    });
+}
