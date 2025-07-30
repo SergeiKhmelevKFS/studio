@@ -470,19 +470,6 @@ export function CardFormSheet({
                             )}
                           />
                         </div>
-                        <FormField
-                          control={form.control}
-                          name="cardsToIssue"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Cards To Issue</FormLabel>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </>
                     )}
                   </CardContent>

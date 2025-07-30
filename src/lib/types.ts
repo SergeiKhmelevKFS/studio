@@ -17,7 +17,6 @@ export const cardSchema = z.object({
   expires: z.coerce.date({ required_error: 'Please select a date' }),
   letterFlag: z.boolean().default(false),
   overseas: z.boolean().default(false),
-  cardsToIssue: z.coerce.number().int().min(1, 'Must issue at least 1 card'),
   cardholderName2: z.string().optional(),
   cardNumber2: z.string().optional(),
   magStripe2: z.string().optional(),
