@@ -58,8 +58,24 @@ export function CardTable({ records, onEdit }: CardTableProps) {
                     {format(record.expires, 'MMM yyyy')}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={isActive ? 'default' : 'destructive'} className={cn(isActive && 'bg-green-500 hover:bg-green-500/80')}>
-                      {isActive ? 'Active' : isExpired ? 'Expired' : 'Deactivated'}
+                  <Badge
+                      variant={
+                        isActive
+                          ? 'default'
+                          : isExpired
+                          ? 'destructive'
+                          : 'secondary'
+                      }
+                      className={cn(
+                        isActive && 'bg-green-500 hover:bg-green-500/80',
+                        !isActive && !isExpired && 'bg-gray-500 text-gray-50 hover:bg-gray-500/80',
+                      )}
+                    >
+                      {isActive
+                        ? 'Active'
+                        : isExpired
+                        ? 'Expired'
+                        : 'Deactivated'}
                     </Badge>
                   </TableCell>
                   <TableCell>
