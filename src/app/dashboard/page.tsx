@@ -190,6 +190,11 @@ export default function DashboardPage() {
     setIsProfileSheetOpen(true);
   };
 
+  const handleReportTypeChange = (value: string) => {
+    setReportType(value);
+    setReportData(null);
+  };
+
   const handleGenerateReport = () => {
     if (!reportType) {
       setReportData(null);
@@ -456,7 +461,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <div className="grid gap-2 w-full sm:w-64">
           <Label htmlFor="report-type">Report Type</Label>
-          <Select value={reportType} onValueChange={setReportType}>
+          <Select value={reportType} onValueChange={handleReportTypeChange}>
             <SelectTrigger id="report-type">
               <SelectValue placeholder="Select a report" />
             </SelectTrigger>
