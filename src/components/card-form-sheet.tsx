@@ -525,18 +525,6 @@ export function CardFormSheet({
                               </FormItem>
                             )}
                           />
-                          <FormField
-                            control={form.control}
-                            name="magStripe2"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Secondary Mag Stripe</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
                         </div>
                       </>
                     )}

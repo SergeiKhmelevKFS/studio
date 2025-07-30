@@ -19,7 +19,6 @@ export const cardSchema = z.object({
   overseas: z.boolean().default(false),
   cardholderName2: z.string().optional(),
   cardNumber2: z.string().optional(),
-  magStripe2: z.string().optional(),
   primaryCardIssueDate: z.coerce.date({
     required_error: 'Please select a date',
   }),
