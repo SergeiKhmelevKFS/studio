@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Pencil } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -24,10 +24,9 @@ import { cn } from '@/lib/utils';
 type CardTableProps = {
   records: CardRecord[];
   onEdit: (record: CardRecord) => void;
-  onDelete: (record: CardRecord) => void;
 };
 
-export function CardTable({ records, onEdit, onDelete }: CardTableProps) {
+export function CardTable({ records, onEdit }: CardTableProps) {
   return (
     <div className="rounded-lg border bg-card shadow-sm">
       <Table>
@@ -80,13 +79,6 @@ export function CardTable({ records, onEdit, onDelete }: CardTableProps) {
                         <DropdownMenuItem onClick={() => onEdit(record)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(record)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

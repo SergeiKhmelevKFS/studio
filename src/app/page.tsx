@@ -56,7 +56,6 @@ export default function Home() {
         <CardTable
           records={records}
           onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </main>
       <CardFormSheet
