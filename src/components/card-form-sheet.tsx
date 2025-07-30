@@ -487,14 +487,21 @@ export function CardFormSheet({
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {!isSecondaryCardGenerated ? (
-                      <Button
-                        type="button"
-                        onClick={handleGenerateSecondaryCard}
-                        disabled={!isCardGenerated}
-                      >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generate Secondary Card
-                      </Button>
+                      <div className="flex flex-col items-start gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleGenerateSecondaryCard}
+                          disabled={!isCardGenerated}
+                        >
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Generate Secondary Card
+                        </Button>
+                        {!isCardGenerated && (
+                           <p className="text-sm text-muted-foreground">
+                           Requires Generating Primary Card
+                         </p>
+                        )}
+                      </div>
                     ) : (
                       <>
                         <FormField
