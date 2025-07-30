@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { users } from '@/lib/users';
 
 const Logo = () => (
     <svg
@@ -39,12 +40,6 @@ const Logo = () => (
       </text>
     </svg>
   );
-
-  const users: Record<string, { password: string, role: string }> = {
-    admin: { password: '123', role: 'Administrator' },
-    fraud_analyst: { password: '123', role: 'Fraud Analyst' },
-    card_manager: { password: '123', role: 'Digital Discount Card Manager' },
-  };
 
 export default function LoginPage() {
   const router = useRouter();

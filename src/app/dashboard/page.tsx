@@ -23,6 +23,10 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import { Switch } from '@/components/ui/switch';
 import { ReportTable } from '@/components/report-table';
 import { DailyReportTable } from '@/components/daily-report-table';
+import type { User, UserRecord } from '@/lib/users';
+import { users as userRecords } from '@/lib/users';
+import { UserTable } from '@/components/user-table';
+import { UserFormSheet } from '@/components/user-form-sheet';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -31,11 +35,6 @@ const getStatusSortValue = (record: CardRecord): number => {
     if (isExpired) return 2;
     if (record.active) return 0;
     return 1;
-};
-
-type User = {
-    username: string;
-    role: string;
 };
 
 type ReportData = {
@@ -63,6 +62,10 @@ export default function DashboardPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+  
+  const [users, setUsers] = useState<UserRecord[]>(Object.entries(userRecords).map(([username, data]) => ({...data, username})));
+  const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
 
   const isReadOnly = user?.role === 'Fraud Analyst';
   const isDateRangeDisabled = reportType === 'card_statuses';
@@ -197,24 +200,8 @@ export default function DashboardPage() {
         } else if (reportType === 'expired_cards') {
             dateField = 'expires';
         } else if (reportType === 'deactivated_cards') {
-          // For deactivated cards, we don't have a specific date field.
-          // This report will show cards that are currently not active and not expired.
-          // The date range might be used to filter by another date field if needed,
-          // but for now, we'll assume it applies to when the record was last relevant (e.g., expiry).
-          // This logic can be refined based on more specific requirements.
-          dataSet = records.filter(record => {
-              const isExpired = record.expires && new Date() > record.expires;
-              return !record.active && !isExpired;
-          });
-          // This is a simplification. A real implementation would need a 'deactivated_date' field.
-          // We will count them by expiry date for this prototype.
           dateField = 'expires'; 
-           dataSet = dataSet.filter(record => {
-            const dateValue = record[dateField] as Date | undefined;
-            return dateValue && dateValue >= start && dateValue <= end;
-          });
         }
-
 
         dataSet = records.filter(record => {
             const dateValue = record[dateField] as Date | undefined;
@@ -289,6 +276,17 @@ export default function DashboardPage() {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
     XLSX.writeFile(workbook, `${reportType}_report.xlsx`);
+  };
+  
+  const handleEditUser = (user: UserRecord) => {
+    setEditingUser(user);
+    setIsUserSheetOpen(true);
+  };
+  
+  const handleSaveUser = (userData: UserRecord) => {
+    setUsers(users.map(u => u.username === userData.username ? userData : u));
+    setIsUserSheetOpen(false);
+    setEditingUser(null);
   };
 
   const chartConfig = {
@@ -525,7 +523,7 @@ export default function DashboardPage() {
   );
 
   const adminView = (
-    <div className="pt-4">
+    <div className="pt-4 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>Admin Dashboard</CardTitle>
@@ -533,10 +531,8 @@ export default function DashboardPage() {
             Welcome to the admin dashboard. System management tools are available here.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p>Admin specific components and tools will be displayed here.</p>
-        </CardContent>
       </Card>
+      <UserTable users={users} onEdit={handleEditUser} />
     </div>
   );
 
@@ -573,6 +569,12 @@ export default function DashboardPage() {
       <ProfileSheet
         open={isProfileSheetOpen}
         onOpenChange={setIsProfileSheetOpen}
+       />
+       <UserFormSheet
+        open={isUserSheetOpen}
+        onOpenChange={setIsUserSheetOpen}
+        user={editingUser}
+        onSave={handleSaveUser}
        />
     </div>
   );
