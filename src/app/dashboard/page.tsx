@@ -10,6 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { DataTablePagination } from '@/components/data-table-pagination';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -21,6 +22,8 @@ export default function DashboardPage() {
   const [sortColumn, setSortColumn] = useState<SortableColumn>('staffId');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
@@ -47,6 +50,7 @@ export default function DashboardPage() {
       setSortColumn(column);
       setSortDirection('asc');
     }
+    setPage(0);
   };
 
   const sortedRecords = useMemo(() => {
@@ -71,6 +75,12 @@ export default function DashboardPage() {
     });
     return sorted;
   }, [filteredRecords, sortColumn, sortDirection]);
+  
+  const paginatedRecords = useMemo(() => {
+    const start = page * rowsPerPage;
+    const end = start + rowsPerPage;
+    return sortedRecords.slice(start, end);
+  }, [sortedRecords, page, rowsPerPage]);
 
   const handleAdd = () => {
     setEditingRecord(null);
@@ -109,16 +119,29 @@ export default function DashboardPage() {
           <Input
             placeholder="Search by Staff ID, Cardholder or Card Number..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(0);
+            }}
             className="w-full max-w-sm pl-10"
           />
         </div>
         <CardTable
-          records={sortedRecords}
+          records={paginatedRecords}
           onEdit={handleEdit}
           onSort={handleSort}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
+        />
+        <DataTablePagination
+            count={sortedRecords.length}
+            page={page}
+            onPageChange={setPage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(value) => {
+                setRowsPerPage(parseInt(value, 10));
+                setPage(0);
+            }}
         />
       </main>
       <CardFormSheet
