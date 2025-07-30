@@ -44,6 +44,8 @@ type ReportData = {
     fill?: string;
 }[];
 
+type ReportSortColumn = 'name' | 'total';
+
 export default function DashboardPage() {
   const router = useRouter();
   const [records, setRecords] = useState<CardRecord[]>(initialData);
@@ -63,6 +65,8 @@ export default function DashboardPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+  const [reportSortColumn, setReportSortColumn] = useState<ReportSortColumn>('name');
+  const [reportSortDirection, setReportSortDirection] = useState<'asc' | 'desc'>('asc');
   
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
@@ -249,9 +253,9 @@ export default function DashboardPage() {
           }
         });
         setReportData([
-          { name: 'Active', total: active, fill: 'var(--color-Active)' },
-          { name: 'Deactivated', total: deactivated, fill: 'var(--color-Deactivated)' },
-          { name: 'Expired', total: expired, fill: 'var(--color-Expired)' },
+          { name: 'Active', total: active, fill: 'hsl(var(--chart-green))' },
+          { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
+          { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
         ]);
       } else if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
         const dailyCounts: { [key: string]: number } = {};
@@ -279,13 +283,13 @@ export default function DashboardPage() {
     
     let dataToExport;
     if (reportType === 'new_cards') {
-        dataToExport = reportData.map(d => ({ Date: d.name, 'New Cards': d.total }));
+        dataToExport = sortedReportData.map(d => ({ Date: d.name, 'New Cards': d.total }));
     } else if (reportType === 'expired_cards') {
-        dataToExport = reportData.map(d => ({ Date: d.name, 'Expired Cards': d.total }));
+        dataToExport = sortedReportData.map(d => ({ Date: d.name, 'Expired Cards': d.total }));
     } else if (reportType === 'deactivated_cards') {
-        dataToExport = reportData.map(d => ({ Date: d.name, 'Deactivated Cards': d.total }));
+        dataToExport = sortedReportData.map(d => ({ Date: d.name, 'Deactivated Cards': d.total }));
     } else {
-         dataToExport = reportData.map(d => ({ Status: d.name, Total: d.total }));
+         dataToExport = sortedReportData.map(d => ({ Status: d.name, Total: d.total }));
     }
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -381,6 +385,36 @@ export default function DashboardPage() {
       color: 'hsl(var(--chart-red))',
     },
   } satisfies ChartConfig;
+
+  const handleReportSort = (column: ReportSortColumn) => {
+    if (reportSortColumn === column) {
+      setReportSortDirection(reportSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setReportSortColumn(column);
+      setReportSortDirection('asc');
+    }
+  };
+
+  const sortedReportData = useMemo(() => {
+    if (!reportData) return [];
+    return [...reportData].sort((a, b) => {
+      const aValue = a[reportSortColumn];
+      const bValue = b[reportSortColumn];
+
+      let comparison = 0;
+      if (reportSortColumn === 'name') {
+        if (reportType === 'card_statuses') {
+          comparison = (aValue as string).localeCompare(bValue as string);
+        } else {
+          comparison = new Date(aValue as string).getTime() - new Date(bValue as string).getTime();
+        }
+      } else { // total
+        comparison = (aValue as number) - (bValue as number);
+      }
+
+      return reportSortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [reportData, reportSortColumn, reportSortDirection, reportType]);
 
   const cardsAndUsersView = (
     <>
@@ -600,16 +634,16 @@ export default function DashboardPage() {
           </Card>
           {(() => {
             if (reportType === 'card_statuses') {
-              return <ReportTable data={reportData} />;
+              return <ReportTable data={sortedReportData} onSort={handleReportSort} sortColumn={reportSortColumn} sortDirection={reportSortDirection} />;
             }
             if (reportType === 'new_cards') {
-              return <DailyReportTable data={reportData} title="New Cards Data" valueHeader="New Cards Issued" />;
+              return <DailyReportTable data={sortedReportData} title="New Cards Data" valueHeader="New Cards Issued" onSort={handleReportSort} sortColumn={reportSortColumn} sortDirection={reportSortDirection} />;
             }
             if (reportType === 'expired_cards') {
-                return <DailyReportTable data={reportData} title="Expired Cards Data" valueHeader="Expired Cards" />;
+                return <DailyReportTable data={sortedReportData} title="Expired Cards Data" valueHeader="Expired Cards" onSort={handleReportSort} sortColumn={reportSortColumn} sortDirection={reportSortDirection} />;
             }
              if (reportType === 'deactivated_cards') {
-                return <DailyReportTable data={reportData} title="Deactivated Cards Data" valueHeader="Deactivated Cards" />;
+                return <DailyReportTable data={sortedReportData} title="Deactivated Cards Data" valueHeader="Deactivated Cards" onSort={handleReportSort} sortColumn={reportSortColumn} sortDirection={reportSortDirection} />;
             }
             return null;
           })()}
@@ -625,14 +659,20 @@ export default function DashboardPage() {
 
   const adminView = (
     <div className="pt-4 space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Search by username..."
-          value={userSearchQuery}
-          onChange={(e) => setUserSearchQuery(e.target.value)}
-          className="w-full max-w-sm pl-10"
-        />
+      <div className="flex justify-between items-center">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Search by username..."
+            value={userSearchQuery}
+            onChange={(e) => setUserSearchQuery(e.target.value)}
+            className="w-full max-w-sm pl-10"
+          />
+        </div>
+        <Button onClick={handleAddUser} className="gap-2">
+            <UserPlus className="h-5 w-5" />
+            <span className="hidden sm:inline">New User</span>
+        </Button>
       </div>
       <UserTable
         users={filteredUsers}
@@ -648,7 +688,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen w-full bg-background">
       <Header
-        onAdd={isAdmin ? handleAddUser : handleAddCard}
+        onAdd={handleAddCard}
         onLogout={handleLogout}
         onProfileClick={handleProfileClick}
         isReadOnly={isReadOnly}

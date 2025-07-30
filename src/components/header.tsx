@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { LogOut, PlusCircle, User, UserPlus } from 'lucide-react';
+import { LogOut, PlusCircle, User } from 'lucide-react';
 
 type HeaderProps = {
   onAdd: () => void;
@@ -46,12 +46,7 @@ export function Header({ onAdd, onLogout, onProfileClick, isReadOnly, isAdmin, u
         </h1>
       </div>
       <div className="flex items-center gap-2">
-        {isAdmin ? (
-            <Button onClick={onAdd} className="gap-2">
-                <UserPlus className="h-5 w-5" />
-                <span className="hidden sm:inline">New User</span>
-            </Button>
-        ) : !isReadOnly && (
+        {!isAdmin && !isReadOnly && (
             <Button onClick={onAdd} className="gap-2">
             <PlusCircle className="h-5 w-5" />
             <span className="hidden sm:inline">New Card</span>
