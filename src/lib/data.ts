@@ -357,4 +357,43 @@ export const initialData: CardRecord[] = [
     primaryPartCardNumberBarcode: '',
     active: true,
   },
+  ...Array.from({ length: 100 }, (_, i) => {
+    const id = (14 + i).toString();
+    const staffId = (100000 + i).toString();
+    const name = `User ${i}`;
+    const company = `Company ${String.fromCharCode(65 + (i % 26))}`;
+    const country = i % 3 === 0 ? 'UK' : i % 3 === 1 ? 'USA' : 'Canada';
+    const city = country === 'UK' ? 'London' : country === 'USA' ? 'New York' : 'Toronto';
+    const active = Math.random() > 0.3;
+    const expired = new Date() > new Date(2025, i % 12, (i % 28) + 1);
+    
+    return {
+      id,
+      staffId,
+      companyName: company,
+      primaryCardholderName: name,
+      primaryCardNumberBarcode: `635666${staffId}`,
+      magStripe: `MS${staffId}`,
+      add1: `${i+1} Main St`,
+      add2: '',
+      add3: '',
+      add4: city,
+      add5: country,
+      postcode: `${10000 + i}`,
+      validFrom: new Date(2023, i % 12, (i % 28) + 1),
+      expires: new Date(2025, i % 12, (i % 28) + 1),
+      letterFlag: Math.random() > 0.5,
+      overseas: country !== 'UK',
+      primaryCardIssueDate: new Date(2023, i % 12, (i % 28) + 1),
+      fullCardNoInCirculation: `635666${staffId}`,
+      primaryCardType: 'Standard',
+      nextPrimaryCardToBeCharged: Math.random() > 0.5,
+      cardholderName2: '',
+      cardNumber2: '',
+      primaryReplacementCardIssueDate: undefined,
+      primaryPartCardNumberBarcode: '',
+      active: active && !expired,
+      reason: !active ? (expired ? 'Expired' : 'Deactivated') : undefined,
+    };
+  }),
 ];
