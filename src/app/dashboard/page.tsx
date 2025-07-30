@@ -17,17 +17,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, type ChartConfig } from '@/components/ui/chart';
+import { Switch } from '@/components/ui/switch';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
 const getStatusSortValue = (record: CardRecord): number => {
     const isExpired = record.expires && new Date() > record.expires;
-    if (isExpired) return 2; 
-    if (record.active) return 0; 
-    return 1; 
+    if (isExpired) return 2;
+    if (record.active) return 0;
+    return 1;
 };
 
 type User = {
@@ -38,6 +39,7 @@ type User = {
 type ReportData = {
     name: string;
     total: number;
+    fill: string;
 }[];
 
 export default function DashboardPage() {
@@ -52,13 +54,14 @@ export default function DashboardPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [user, setUser] = useState<User | null>(null);
-  
+
   const [reportType, setReportType] = useState('');
   const [reportStartDate, setReportStartDate] = useState<Date | undefined>();
   const [reportEndDate, setReportEndDate] = useState<Date | undefined>();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  
+  const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
+
   const isReadOnly = user?.role === 'Fraud Analyst';
   const isDateRangeDisabled = reportType === 'card_statuses';
 
@@ -119,7 +122,7 @@ export default function DashboardPage() {
     });
     return sorted;
   }, [filteredRecords, sortColumn, sortDirection]);
-  
+
   const paginatedRecords = useMemo(() => {
     const start = page * rowsPerPage;
     const end = start + rowsPerPage;
@@ -149,13 +152,13 @@ export default function DashboardPage() {
     setIsSheetOpen(false);
     setEditingRecord(null);
   };
-  
+
   const handleLogout = () => {
     sessionStorage.removeItem('isLoggedIn');
     sessionStorage.removeItem('user');
     router.push('/');
   };
-  
+
   const handleProfileClick = () => {
     setIsProfileSheetOpen(true);
   };
@@ -175,7 +178,7 @@ export default function DashboardPage() {
     // Simulate API call
     setTimeout(() => {
       let dataSet: CardRecord[];
-      
+
       if (reportType === 'card_statuses') {
         dataSet = records;
       } else {
@@ -202,9 +205,9 @@ export default function DashboardPage() {
           }
         });
         setReportData([
-          { name: 'Active', total: active },
-          { name: 'Deactivated', total: deactivated },
-          { name: 'Expired', total: expired },
+          { name: 'Active', total: active, fill: 'hsl(var(--chart-green))' },
+          { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
+          { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
         ]);
       } else {
         // Handle other report types here
@@ -218,17 +221,17 @@ export default function DashboardPage() {
     total: {
       label: 'Total',
     },
-    active: {
+    Active: {
       label: 'Active',
-      color: 'hsl(var(--chart-2))',
+      color: 'hsl(var(--chart-green))',
     },
-    deactivated: {
+    Deactivated: {
       label: 'Deactivated',
-      color: 'hsl(var(--chart-3))',
+      color: 'hsl(var(--chart-gray))',
     },
-    expired: {
+    Expired: {
       label: 'Expired',
-      color: 'hsl(var(--chart-5))',
+      color: 'hsl(var(--chart-red))',
     },
   } satisfies ChartConfig;
 
@@ -306,37 +309,75 @@ export default function DashboardPage() {
            </div>
         ) : reportData ? (
           <Card>
-            <CardHeader>
-                <CardTitle>{reportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</CardTitle>
-                <CardDescription>
-                    {reportType === 'card_statuses'
-                        ? 'Current status of all cards in the system.'
-                        : reportStartDate && reportEndDate && 
-                          `From ${reportStartDate.toLocaleDateString()} to ${reportEndDate.toLocaleDateString()}`
-                    }
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>{reportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</CardTitle>
+                    <CardDescription>
+                        {reportType === 'card_statuses'
+                            ? 'Current status of all cards in the system.'
+                            : reportStartDate && reportEndDate &&
+                              `From ${reportStartDate.toLocaleDateString()} to ${reportEndDate.toLocaleDateString()}`
+                        }
+                    </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Label htmlFor="chart-type-switch">Pie Chart</Label>
+                    <Switch
+                        id="chart-type-switch"
+                        checked={chartType === 'pie'}
+                        onCheckedChange={(checked) => setChartType(checked ? 'pie' : 'bar')}
+                    />
+                </div>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                    <BarChart accessibilityLayer data={reportData}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="name"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                        />
-                         <YAxis />
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar 
-                            dataKey="total" 
-                            radius={4} 
-                            fill="var(--color-active)"
-                        />
-                    </BarChart>
+                    {chartType === 'bar' ? (
+                        <BarChart accessibilityLayer data={reportData}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
+                            />
+                            <YAxis />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent indicator="dot" />}
+                            />
+                            <Bar
+                                dataKey="total"
+                                radius={4}
+                            >
+                                {reportData.map((entry) => (
+                                    <Cell key={entry.name} fill={entry.fill} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    ) : (
+                        <PieChart accessibilityLayer>
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent hideLabel />}
+                            />
+                            <Pie
+                                data={reportData}
+                                dataKey="total"
+                                nameKey="name"
+                                innerRadius={60}
+                                strokeWidth={5}
+                            >
+                                 {reportData.map((entry) => (
+                                    <Cell key={entry.name} fill={entry.fill} className="stroke-background" />
+                                ))}
+                            </Pie>
+                             <ChartLegend
+                                content={<ChartLegendContent nameKey="name" />}
+                                className="-translate-y-[2rem] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                              />
+                        </PieChart>
+                    )}
                 </ChartContainer>
             </CardContent>
           </Card>
