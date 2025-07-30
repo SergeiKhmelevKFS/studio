@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { CardRecord } from '@/lib/types';
@@ -10,30 +11,74 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, ArrowUpDown } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
+
 type CardTableProps = {
   records: CardRecord[];
   onEdit: (record: CardRecord) => void;
+  onSort: (column: SortableColumn) => void;
+  sortColumn: SortableColumn;
+  sortDirection: 'asc' | 'desc';
 };
 
-export function CardTable({ records, onEdit }: CardTableProps) {
+export function CardTable({ records, onEdit, onSort, sortColumn, sortDirection }: CardTableProps) {
+    const renderSortIcon = (column: SortableColumn) => {
+        if (sortColumn !== column) {
+            return <ArrowUpDown className="ml-2 h-4 w-4" />;
+        }
+        return sortDirection === 'asc' ? (
+            <ArrowUpDown className="ml-2 h-4 w-4" /> // Replace with ArrowUp icon if you have it
+        ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" /> // Replace with ArrowDown icon if you have it
+        );
+    };
+
   return (
     <div className="rounded-lg border bg-card shadow-sm">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Staff ID</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead className="hidden md:table-cell">Cardholder</TableHead>
-            <TableHead className="hidden lg:table-cell">
-              Card Number
+            <TableHead>
+              <Button variant="ghost" onClick={() => onSort('staffId')}>
+                Staff ID
+                {renderSortIcon('staffId')}
+              </Button>
             </TableHead>
-            <TableHead className="hidden sm:table-cell">Expires</TableHead>
-            <TableHead className="hidden sm:table-cell">Status</TableHead>
+            <TableHead>
+              <Button variant="ghost" onClick={() => onSort('companyName')}>
+                Company
+                {renderSortIcon('companyName')}
+              </Button>
+            </TableHead>
+            <TableHead className="hidden md:table-cell">
+              <Button variant="ghost" onClick={() => onSort('primaryCardholderName')}>
+                Cardholder
+                {renderSortIcon('primaryCardholderName')}
+              </Button>
+            </TableHead>
+            <TableHead className="hidden lg:table-cell">
+              <Button variant="ghost" onClick={() => onSort('primaryCardNumberBarcode')}>
+                Card Number
+                {renderSortIcon('primaryCardNumberBarcode')}
+              </Button>
+            </TableHead>
+            <TableHead className="hidden sm:table-cell">
+              <Button variant="ghost" onClick={() => onSort('expires')}>
+                Expires
+                {renderSortIcon('expires')}
+              </Button>
+            </TableHead>
+            <TableHead className="hidden sm:table-cell">
+              <Button variant="ghost" onClick={() => onSort('active')}>
+                Status
+                {renderSortIcon('active')}
+              </Button>
+            </TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
