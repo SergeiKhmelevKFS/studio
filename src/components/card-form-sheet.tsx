@@ -89,8 +89,12 @@ export function CardFormSheet({
   };
   
   const handleGenerateCard = () => {
+    const randomCardNumber = Math.floor(
+      100000000000 + Math.random() * 900000000000
+    ).toString();
+    form.setValue('primaryCardNumberBarcode', randomCardNumber);
+    form.setValue('primaryCardIssueDate', new Date());
     setIsCardGenerated(true);
-    // You might want to pre-fill some card details here in a real scenario
   };
 
   const onSubmit = (data: CardRecord) => {
