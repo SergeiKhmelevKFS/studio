@@ -41,7 +41,7 @@ export function Header({ onAdd }: HeaderProps) {
       </div>
       <Button onClick={onAdd} className="gap-2">
         <PlusCircle className="h-5 w-5" />
-        <span className="hidden sm:inline">Add Employee</span>
+        <span className="hidden sm:inline">New Card</span>
       </Button>
     </header>
   );
