@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for detecting potential discount card misuse.
@@ -21,6 +20,7 @@ const CardWithTransactionsSchema = cardSchema.extend({
 const DetectCardMisuseInputSchema = z.object({
   cards: z.array(cardSchema),
   transactions: z.array(transactionSchema),
+  rules: z.string().optional(),
 });
 export type DetectCardMisuseInput = z.infer<typeof DetectCardMisuseInputSchema>;
 
@@ -35,9 +35,13 @@ export async function detectCardMisuse(input: DetectCardMisuseInput): Promise<De
   return detectCardMisuseFlow(input);
 }
 
+const defaultRules = `1.  **Payer Mismatch:** A high percentage of transactions (e.g., >50%) made by someone other than the primary or secondary cardholder.
+2.  **High Frequency:** Too many transactions in a short period (e.g., more than 3 transactions in 24 hours).
+3.  **Anomalous Geographic Velocity:** Transactions in geographically distant locations in an impossible timeframe (e.g., London and New York on the same day).`;
+
 const misuseDetectionPrompt = ai.definePrompt({
   name: 'misuseDetectionPrompt',
-  input: { schema: z.object({ card: CardWithTransactionsSchema }) },
+  input: { schema: z.object({ card: CardWithTransactionsSchema, rules: z.string() }) },
   output: { schema: z.object({ isSuspicious: z.boolean(), reasons: z.array(z.string()) }) },
   prompt: `You are a fraud detection expert for a discount card program.
 Analyze the following card and its associated transactions to determine if there is potential misuse.
@@ -55,9 +59,7 @@ Analyze the following card and its associated transactions to determine if there
 {{/each}}
 
 **Business Rules for Misuse:**
-1.  **Payer Mismatch:** A high percentage of transactions (e.g., >50%) made by someone other than the primary or secondary cardholder.
-2.  **High Frequency:** Too many transactions in a short period (e.g., more than 3 transactions in 24 hours).
-3.  **Anomalous Geographic Velocity:** Transactions in geographically distant locations in an impossible timeframe (e.g., London and New York on the same day).
+{{{rules}}}
 
 Based on these rules, determine if the card activity is suspicious and list the specific rules that were violated.
 `,
@@ -69,7 +71,8 @@ const detectCardMisuseFlow = ai.defineFlow(
     inputSchema: DetectCardMisuseInputSchema,
     outputSchema: DetectCardMisuseOutputSchema,
   },
-  async ({ cards, transactions }) => {
+  async ({ cards, transactions, rules }) => {
+    const effectiveRules = rules || defaultRules;
     const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
 
     const cardTransactionMap = new Map<string, z.infer<typeof transactionSchema>[]>();
@@ -92,7 +95,7 @@ const detectCardMisuseFlow = ai.defineFlow(
               transactions: cardTransactions,
           };
 
-          return misuseDetectionPrompt({ card: cardWithTransactions }).then(({ output }) => {
+          return misuseDetectionPrompt({ card: cardWithTransactions, rules: effectiveRules }).then(({ output }) => {
               if (output?.isSuspicious && output.reasons.length > 0) {
                   return {
                       ...card,
@@ -103,7 +106,7 @@ const detectCardMisuseFlow = ai.defineFlow(
               return null;
           });
       })
-      .filter(p => p !== null);
+      .filter(p => p !== null) as Promise<z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'][number] | null>[];
 
     const results = await Promise.all(analysisPromises);
     

@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download, UserPlus, Trash, List, AlertTriangle } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus, Trash, List, AlertTriangle, FilePenLine } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +31,7 @@ import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
 import { TransactionSheet } from '@/components/transaction-sheet';
 import { MisuseReportTable, type MisuseReportRecord } from '@/components/misuse-report-table';
 import { detectCardMisuseAction } from '@/lib/actions';
+import { EditMisuseRulesSheet, defaultRules } from '@/components/edit-misuse-rules-sheet';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -88,6 +89,9 @@ export default function DashboardPage() {
   const [isSearchingMisuse, setIsSearchingMisuse] = useState(false);
   const [misuseReport, setMisuseReport] = useState<MisuseReportRecord[] | null>(null);
   const [hasSearchedMisuse, setHasSearchedMisuse] = useState(false);
+  
+  const [isEditRulesSheetOpen, setIsEditRulesSheetOpen] = useState(false);
+  const [misuseRules, setMisuseRules] = useState(defaultRules);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -111,6 +115,11 @@ export default function DashboardPage() {
         const userRecords = Object.entries(defaultUsers).map(([username, data]) => ({ ...data, username }))
         setUsers(userRecords);
         localStorage.setItem('users', JSON.stringify(userRecords));
+    }
+    
+    const storedRules = localStorage.getItem('misuseRules');
+    if (storedRules) {
+        setMisuseRules(storedRules);
     }
   }, [router]);
 
@@ -444,23 +453,35 @@ export default function DashboardPage() {
     setIsSearchingMisuse(true);
     setHasSearchedMisuse(true);
     setMisuseReport(null);
-    const result = await detectCardMisuseAction({ cards: records, transactions });
+    const result = await detectCardMisuseAction({ cards: records, transactions, rules: misuseRules });
     setMisuseReport(result.flaggedCards);
     setIsSearchingMisuse(false);
   };
 
+  const handleSaveRules = (newRules: string) => {
+    setMisuseRules(newRules);
+    localStorage.setItem('misuseRules', newRules);
+    setIsEditRulesSheetOpen(false);
+  };
+
   const cardsAndUsersView = (
     <>
-      <div className="flex items-center justify-end mt-4 mb-4">
+      <div className="flex items-center justify-end mt-4 mb-4 space-x-2">
         {isReadOnly && (
-          <Button onClick={handleSearchMisuse} disabled={isSearchingMisuse}>
-            {isSearchingMisuse ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <AlertTriangle className="mr-2 h-4 w-4" />
-            )}
-            Search for Misuse
-          </Button>
+          <>
+            <Button onClick={() => setIsEditRulesSheetOpen(true)} variant="outline">
+              <FilePenLine className="mr-2 h-4 w-4" />
+              Edit Misuse Rules
+            </Button>
+            <Button onClick={handleSearchMisuse} disabled={isSearchingMisuse}>
+              {isSearchingMisuse ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <AlertTriangle className="mr-2 h-4 w-4" />
+              )}
+              Search for Misuse
+            </Button>
+          </>
         )}
       </div>
 
@@ -826,6 +847,12 @@ export default function DashboardPage() {
         onOpenChange={setIsTransactionSheetOpen}
         transactions={selectedCardTransactions}
         cardRecord={selectedCardForTransactions}
+        />
+        <EditMisuseRulesSheet
+          open={isEditRulesSheetOpen}
+          onOpenChange={setIsEditRulesSheetOpen}
+          rules={misuseRules}
+          onSave={handleSaveRules}
         />
     </div>
   );
