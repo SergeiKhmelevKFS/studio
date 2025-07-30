@@ -388,7 +388,7 @@ export function CardFormSheet({
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Card Details</CardTitle>
+                    <CardTitle>Primary Card Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                   {!isCardGenerated && !record ? (
