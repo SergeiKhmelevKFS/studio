@@ -13,7 +13,7 @@ export function Header({ onAdd }: HeaderProps) {
       <div className="flex items-center gap-2">
         <CreditCard className="h-7 w-7 text-primary" />
         <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          CardShark
+          B&Q Discount Card
         </h1>
       </div>
       <Button onClick={onAdd} className="gap-2">
