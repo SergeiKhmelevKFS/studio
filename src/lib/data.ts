@@ -1,3 +1,4 @@
+
 import type { CardRecord } from './types';
 
 export const initialData: CardRecord[] = [
@@ -399,7 +400,6 @@ export const initialData: CardRecord[] = [
 ];
 
 const julyRecords: CardRecord[] = [];
-const startDate = new Date('2024-07-01');
 let currentId = 214;
 for (let i = 0; i < 31; i++) {
     const currentDate = new Date(startDate);
@@ -446,3 +446,43 @@ for (let i = 0; i < 31; i++) {
     }
 }
 initialData.push(...julyRecords);
+
+const july2025Records: CardRecord[] = [];
+const startDateJuly2025 = new Date('2025-07-01');
+for (let i = 0; i < 10; i++) {
+    const currentDate = new Date(startDateJuly2025);
+    currentDate.setDate(startDateJuly2025.getDate() + i);
+    const staffId = (400000 + i).toString();
+    const name = `Future User ${i+1}`;
+    const company = `Company Future ${String.fromCharCode(65 + (i % 26))}`;
+    const country = i % 2 === 0 ? 'UK' : 'USA';
+    const city = country === 'UK' ? 'Manchester' : 'Chicago';
+    july2025Records.push({
+        id: (currentId + i).toString(),
+        staffId,
+        companyName: company,
+        primaryCardholderName: name,
+        primaryCardNumberBarcode: `635666${staffId}`,
+        magStripe: `MS${staffId}`,
+        add1: `${400 + i} Future Ave`,
+        add2: '',
+        add3: '',
+        add4: city,
+        add5: country,
+        postcode: `${30000 + i}`,
+        validFrom: currentDate,
+        expires: new Date(2027, currentDate.getMonth(), currentDate.getDate()),
+        letterFlag: Math.random() > 0.5,
+        overseas: country !== 'UK',
+        primaryCardIssueDate: currentDate,
+        fullCardNoInCirculation: `635666${staffId}`,
+        primaryCardType: 'Standard',
+        nextPrimaryCardToBeCharged: Math.random() > 0.5,
+        cardholderName2: '',
+        cardNumber2: '',
+        primaryReplacementCardIssueDate: undefined,
+        primaryPartCardNumberBarcode: '',
+        active: true,
+    });
+}
+initialData.push(...july2025Records);
