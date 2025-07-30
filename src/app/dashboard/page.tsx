@@ -3,14 +3,14 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import type { CardRecord } from '@/lib/types';
-import { initialData } from '@/lib/data';
+import type { CardRecord, TransactionRecord } from '@/lib/types';
+import { initialData, initialTransactions } from '@/lib/data';
 import { Header } from '@/components/header';
 import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download, UserPlus, Trash } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus, Trash, List } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,6 +28,7 @@ import { users as defaultUsers } from '@/lib/users';
 import { UserTable } from '@/components/user-table';
 import { UserFormSheet } from '@/components/user-form-sheet';
 import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
+import { TransactionSheet } from '@/components/transaction-sheet';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -49,6 +50,7 @@ type ReportSortColumn = 'name' | 'total';
 export default function DashboardPage() {
   const router = useRouter();
   const [records, setRecords] = useState<CardRecord[]>(initialData);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>(initialTransactions);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CardRecord | null>(null);
@@ -76,6 +78,9 @@ export default function DashboardPage() {
   const [deletingUser, setDeletingUser] = useState<UserRecord | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState('');
+
+  const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false);
+  const [selectedCardTransactions, setSelectedCardTransactions] = useState<TransactionRecord[]>([]);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -420,6 +425,12 @@ export default function DashboardPage() {
       return reportSortDirection === 'asc' ? comparison : -comparison;
     });
   }, [reportData, reportSortColumn, reportSortDirection, reportType]);
+  
+  const handleViewTransactions = (record: CardRecord) => {
+    const cardTransactions = transactions.filter(t => t.cardRecordId === record.id);
+    setSelectedCardTransactions(cardTransactions);
+    setIsTransactionSheetOpen(true);
+  };
 
   const cardsAndUsersView = (
     <>
@@ -442,6 +453,7 @@ export default function DashboardPage() {
         sortColumn={sortColumn}
         sortDirection={sortDirection}
         isReadOnly={isReadOnly}
+        onViewTransactions={handleViewTransactions}
       />
       <DataTablePagination
           count={sortedRecords.length}
@@ -560,7 +572,7 @@ export default function DashboardPage() {
                                         radius={8}
                                     >
                                       {reportData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={`url(#gradient-${entry.name})`} />
+                                        <Cell key={`cell-${entry.name}`} fill={entry.fill || `url(#gradient-${entry.name})`} />
                                       ))}
                                     </Bar>
                                 </BarChart>
@@ -747,8 +759,15 @@ export default function DashboardPage() {
         title={`Delete user ${deletingUser?.username}?`}
         description="This action cannot be undone. This will permanently delete the user and all associated data."
        />
+       <TransactionSheet
+        open={isTransactionSheetOpen}
+        onOpenChange={setIsTransactionSheetOpen}
+        transactions={selectedCardTransactions}
+        />
     </div>
   );
 }
+
+    
 
     

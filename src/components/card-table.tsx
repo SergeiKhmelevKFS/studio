@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpDown, Eye } from 'lucide-react';
+import { Pencil, ArrowUpDown, Eye, List } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ type CardTableProps = {
   sortColumn: SortableColumn;
   sortDirection: 'asc' | 'desc';
   isReadOnly: boolean;
+  onViewTransactions: (record: CardRecord) => void;
 };
 
 const StatusBadge = ({ record }: { record: CardRecord }) => {
@@ -67,7 +68,7 @@ const StatusBadge = ({ record }: { record: CardRecord }) => {
     );
 };
 
-export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirection, isReadOnly }: CardTableProps) {
+export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirection, isReadOnly, onViewTransactions }: CardTableProps) {
     const renderSortIcon = (column: SortableColumn) => {
         if (sortColumn !== column) {
             return <ArrowUpDown className="ml-2 h-4 w-4" />;
@@ -149,7 +150,19 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
                   <TableCell className="hidden sm:table-cell">
                     <StatusBadge record={record} />
                   </TableCell>
-                  {isReadOnly && <TableCell></TableCell>}
+                  {isReadOnly && <TableCell>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onViewTransactions(record);
+                            }}
+                            >
+                            <List className="mr-2 h-4 w-4" />
+                            View Transactions
+                        </Button>
+                    </TableCell>}
                   <TableCell>
                     <Button
                       variant="outline"
@@ -178,3 +191,5 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
     </div>
   );
 }
+
+    
