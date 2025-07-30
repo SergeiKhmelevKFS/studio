@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { Switch } from '@/components/ui/switch';
 import { ReportTable } from '@/components/report-table';
+import { NewCardsReportTable } from '@/components/new-cards-report-table';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -40,7 +41,7 @@ type User = {
 type ReportData = {
     name: string;
     total: number;
-    fill: string;
+    fill?: string;
 }[];
 
 export default function DashboardPage() {
@@ -185,9 +186,14 @@ export default function DashboardPage() {
       if (reportType === 'card_statuses') {
         dataSet = records;
       } else {
+        const start = reportStartDate!;
+        start.setHours(0,0,0,0);
+        const end = reportEndDate!;
+        end.setHours(23,59,59,999);
+        
         dataSet = records.filter(record => {
             const issueDate = record.primaryCardIssueDate;
-            return issueDate >= reportStartDate! && issueDate <= reportEndDate!;
+            return issueDate >= start && issueDate <= end;
         });
       }
 
@@ -212,6 +218,16 @@ export default function DashboardPage() {
           { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
           { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
         ]);
+      } else if (reportType === 'new_cards') {
+        const dailyCounts: { [key: string]: number } = {};
+        dataSet.forEach(record => {
+          const date = record.primaryCardIssueDate.toLocaleDateString();
+          dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+        });
+        const chartData = Object.entries(dailyCounts)
+          .map(([date, total]) => ({ name: date, total }))
+          .sort((a,b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+        setReportData(chartData);
       } else {
         // Handle other report types here
         setReportData([]);
@@ -223,7 +239,11 @@ export default function DashboardPage() {
   const handleExport = async () => {
     if (!reportData) return;
     const XLSX = await import('xlsx');
-    const worksheet = XLSX.utils.json_to_sheet(reportData.map(d => ({ Status: d.name, Total: d.total })));
+    const dataToExport = reportType === 'new_cards'
+        ? reportData.map(d => ({ Date: d.name, 'New Cards': d.total }))
+        : reportData.map(d => ({ Status: d.name, Total: d.total }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
     XLSX.writeFile(workbook, `${reportType}_report.xlsx`);
@@ -232,6 +252,7 @@ export default function DashboardPage() {
   const chartConfig = {
     total: {
       label: 'Total',
+      color: 'hsl(var(--chart-green))',
     },
     Active: {
       label: 'Active',
@@ -337,18 +358,68 @@ export default function DashboardPage() {
                         }
                     </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="chart-type-switch">Pie Chart</Label>
-                    <Switch
-                        id="chart-type-switch"
-                        checked={chartType === 'pie'}
-                        onCheckedChange={(checked) => setChartType(checked ? 'pie' : 'bar')}
-                    />
-                </div>
+                {reportType === 'card_statuses' && (
+                    <div className="flex items-center gap-2">
+                        <Label htmlFor="chart-type-switch">Pie Chart</Label>
+                        <Switch
+                            id="chart-type-switch"
+                            checked={chartType === 'pie'}
+                            onCheckedChange={(checked) => setChartType(checked ? 'pie' : 'bar')}
+                        />
+                    </div>
+                )}
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                    {chartType === 'bar' ? (
+                    {reportType === 'card_statuses' ? (
+                        chartType === 'bar' ? (
+                            <BarChart accessibilityLayer data={reportData}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    tickLine={false}
+                                    tickMargin={10}
+                                    axisLine={false}
+                                    tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
+                                />
+                                <YAxis />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent indicator="dot" />}
+                                />
+                                <Bar
+                                    dataKey="total"
+                                    radius={4}
+                                >
+                                    {reportData.map((entry) => (
+                                        <Cell key={`cell-${entry.name}`} fill={entry.fill!} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        ) : (
+                            <PieChart accessibilityLayer>
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={<ChartTooltipContent hideLabel />}
+                                />
+                                <Pie
+                                    data={reportData}
+                                    dataKey="total"
+                                    nameKey="name"
+                                    innerRadius={60}
+                                    strokeWidth={5}
+                                >
+                                     {reportData.map((entry) => (
+                                        <Cell key={`cell-${entry.name}`} fill={entry.fill!} className="stroke-background" />
+                                    ))}
+                                </Pie>
+                                 <ChartLegend
+                                    content={<ChartLegendContent nameKey="name" />}
+                                    className="-translate-y-[2rem] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                                  />
+                            </PieChart>
+                        )
+                    ) : reportType === 'new_cards' ? (
                         <BarChart accessibilityLayer data={reportData}>
                             <CartesianGrid vertical={false} />
                             <XAxis
@@ -356,49 +427,31 @@ export default function DashboardPage() {
                                 tickLine={false}
                                 tickMargin={10}
                                 axisLine={false}
-                                tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
+                                angle={-45}
+                                textAnchor="end"
+                                minTickGap={-10}
+                                height={50}
                             />
                             <YAxis />
                             <ChartTooltip
                                 cursor={false}
-                                content={<ChartTooltipContent indicator="dot" />}
+                                content={<ChartTooltipContent />}
                             />
                             <Bar
                                 dataKey="total"
+                                fill="hsl(var(--chart-green))"
                                 radius={4}
-                            >
-                                {reportData.map((entry) => (
-                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    ) : (
-                        <PieChart accessibilityLayer>
-                            <ChartTooltip
-                                cursor={false}
-                                content={<ChartTooltipContent hideLabel />}
                             />
-                            <Pie
-                                data={reportData}
-                                dataKey="total"
-                                nameKey="name"
-                                innerRadius={60}
-                                strokeWidth={5}
-                            >
-                                 {reportData.map((entry) => (
-                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} className="stroke-background" />
-                                ))}
-                            </Pie>
-                             <ChartLegend
-                                content={<ChartLegendContent nameKey="name" />}
-                                className="-translate-y-[2rem] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                              />
-                        </PieChart>
-                    )}
+                        </BarChart>
+                    ) : null}
                 </ChartContainer>
             </CardContent>
           </Card>
-          <ReportTable data={reportData} />
+          {reportType === 'card_statuses' ? (
+            <ReportTable data={reportData} />
+          ) : reportType === 'new_cards' ? (
+            <NewCardsReportTable data={reportData} />
+          ) : null }
           </>
         ) : (
           <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
