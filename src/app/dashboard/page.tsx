@@ -33,11 +33,19 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  
+  const isReadOnly = userRole === 'Fraud Analyst';
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.replace('/');
+      return;
+    }
+    const storedUser = sessionStorage.getItem('user');
+    if (storedUser) {
+        setUserRole(JSON.parse(storedUser).role);
     }
   }, [router]);
 
@@ -94,20 +102,22 @@ export default function DashboardPage() {
   }, [sortedRecords, page, rowsPerPage]);
 
   const handleAdd = () => {
+    if (isReadOnly) return;
     setEditingRecord(null);
     setIsSheetOpen(true);
   };
 
-  const handleEdit = (record: CardRecord) => {
+  const handleViewOrEdit = (record: CardRecord) => {
     setEditingRecord(record);
     setIsSheetOpen(true);
   };
 
   const handleSave = (recordData: CardRecord) => {
-    if (editingRecord) {
-      setRecords(
-        records.map((r) => (r.id === editingRecord.id ? recordData : r))
-      );
+    if (isReadOnly) return;
+    if (editingRecord && editingRecord.id) {
+        setRecords(
+            records.map((r) => (r.id === editingRecord.id ? { ...recordData, id: editingRecord.id } : r))
+        );
     } else {
       setRecords([...records, { ...recordData, id: Date.now().toString() }]);
     }
@@ -117,6 +127,7 @@ export default function DashboardPage() {
   
   const handleLogout = () => {
     sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('user');
     router.push('/');
   };
   
@@ -127,7 +138,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} />
+      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} />
       <main className="p-4 md:p-8">
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -143,10 +154,11 @@ export default function DashboardPage() {
         </div>
         <CardTable
           records={paginatedRecords}
-          onEdit={handleEdit}
+          onViewOrEdit={handleViewOrEdit}
           onSort={handleSort}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
+          isReadOnly={isReadOnly}
         />
         <DataTablePagination
             count={sortedRecords.length}
@@ -164,6 +176,7 @@ export default function DashboardPage() {
         onOpenChange={setIsSheetOpen}
         record={editingRecord}
         onSave={handleSave}
+        isReadOnly={isReadOnly}
       />
       <ProfileSheet
         open={isProfileSheetOpen}

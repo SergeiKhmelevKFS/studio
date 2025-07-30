@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -49,6 +50,7 @@ type CardFormSheetProps = {
   onOpenChange: (open: boolean) => void;
   record: CardRecord | null;
   onSave: (data: CardRecord) => void;
+  isReadOnly: boolean;
 };
 
 export function CardFormSheet({
@@ -56,6 +58,7 @@ export function CardFormSheet({
   onOpenChange,
   record,
   onSave,
+  isReadOnly,
 }: CardFormSheetProps) {
   const form = useForm<CardRecord>({
     resolver: zodResolver(cardSchema),
@@ -116,6 +119,7 @@ export function CardFormSheet({
   };
 
   const onSubmit = (data: CardRecord) => {
+    if(isReadOnly) return;
     onSave({ ...record, ...data });
   };
 
@@ -124,10 +128,10 @@ export function CardFormSheet({
       <SheetContent className="flex w-full flex-col sm:max-w-2xl">
         <SheetHeader>
           <SheetTitle>
-            {record ? 'Edit Card Record' : 'Add New Card Record'}
+            {isReadOnly ? 'View Card Record' : record ? 'Edit Card Record' : 'Add New Card Record'}
           </SheetTitle>
           <SheetDescription>
-            {record
+            {isReadOnly ? 'Viewing card record details.' : record
               ? 'Update the details for this card record.'
               : 'Fill in the form to create a new card record.'}
           </SheetDescription>
@@ -138,7 +142,7 @@ export function CardFormSheet({
             className="flex flex-1 flex-col overflow-hidden"
           >
             <ScrollArea className="flex-1">
-              <div className="space-y-6 p-1 pr-6">
+              <fieldset disabled={isReadOnly} className="space-y-6 p-1 pr-6 group">
                 {!record && (
                   <Card>
                     <CardHeader>
@@ -369,7 +373,7 @@ export function CardFormSheet({
                       </Button>
                     ) : (
                       <>
-                        {record && 
+                        {(record || isCardGenerated) && 
                         <div className="space-y-4">
                           <FormField
                             control={form.control}
@@ -593,7 +597,7 @@ export function CardFormSheet({
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </fieldset>
             </ScrollArea>
             <SheetFooter className="mt-auto flex-shrink-0 p-6 pt-4">
               <SheetClose asChild>
@@ -601,12 +605,14 @@ export function CardFormSheet({
                   Cancel
                 </Button>
               </SheetClose>
-              <Button type="submit">
-                {form.formState.isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save Changes
-              </Button>
+              {!isReadOnly && (
+                <Button type="submit">
+                  {form.formState.isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Save Changes
+                </Button>
+              )}
             </SheetFooter>
           </form>
         </Form>

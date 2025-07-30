@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpDown } from 'lucide-react';
+import { Pencil, ArrowUpDown, Eye } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -20,13 +20,14 @@ type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primar
 
 type CardTableProps = {
   records: CardRecord[];
-  onEdit: (record: CardRecord) => void;
+  onViewOrEdit: (record: CardRecord) => void;
   onSort: (column: SortableColumn) => void;
   sortColumn: SortableColumn;
   sortDirection: 'asc' | 'desc';
+  isReadOnly: boolean;
 };
 
-export function CardTable({ records, onEdit, onSort, sortColumn, sortDirection }: CardTableProps) {
+export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirection, isReadOnly }: CardTableProps) {
     const renderSortIcon = (column: SortableColumn) => {
         if (sortColumn !== column) {
             return <ArrowUpDown className="ml-2 h-4 w-4" />;
@@ -90,7 +91,7 @@ export function CardTable({ records, onEdit, onSort, sortColumn, sortDirection }
               const isExpired = record.expires && new Date() > record.expires;
               const isActive = record.active && !isExpired;
               return (
-                <TableRow key={record.id}>
+                <TableRow key={record.id} onClick={() => onViewOrEdit(record)} className="cursor-pointer">
                   <TableCell className="font-medium">{record.staffId}</TableCell>
                   <TableCell>{record.companyName}</TableCell>
                   <TableCell className="hidden md:table-cell">
@@ -127,10 +128,13 @@ export function CardTable({ records, onEdit, onSort, sortColumn, sortDirection }
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onEdit(record)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewOrEdit(record)
+                      }}
                     >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
+                      {isReadOnly ? <Eye className="mr-2 h-4 w-4" /> : <Pencil className="mr-2 h-4 w-4" />}
+                      {isReadOnly ? 'View' : 'Edit'}
                     </Button>
                   </TableCell>
                 </TableRow>

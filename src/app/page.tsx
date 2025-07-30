@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -52,7 +53,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   const handleLogin = () => {
-    const user = users[username];
+    const user = users[username.toLowerCase()];
     if (user && user.password === password) {
       sessionStorage.setItem('isLoggedIn', 'true');
       sessionStorage.setItem('user', JSON.stringify({ username, role: user.role }));
