@@ -15,6 +15,7 @@ import { Pencil, ArrowUpDown, Eye } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -25,6 +26,45 @@ type CardTableProps = {
   sortColumn: SortableColumn;
   sortDirection: 'asc' | 'desc';
   isReadOnly: boolean;
+};
+
+const StatusBadge = ({ record }: { record: CardRecord }) => {
+    const [status, setStatus] = useState<{
+        text: 'Active' | 'Expired' | 'Deactivated' | 'Loading...';
+        variant: 'default' | 'destructive' | 'secondary';
+        className: string;
+    }>({ text: 'Loading...', variant: 'secondary', className: '' });
+
+    useEffect(() => {
+        const isExpired = record.expires && new Date() > record.expires;
+        const isActive = record.active && !isExpired;
+
+        if (isActive) {
+            setStatus({
+                text: 'Active',
+                variant: 'default',
+                className: 'bg-green-500 hover:bg-green-500/80',
+            });
+        } else if (isExpired) {
+            setStatus({
+                text: 'Expired',
+                variant: 'destructive',
+                className: '',
+            });
+        } else {
+            setStatus({
+                text: 'Deactivated',
+                variant: 'secondary',
+                className: 'bg-gray-500 text-gray-50 hover:bg-gray-500/80',
+            });
+        }
+    }, [record.active, record.expires]);
+
+    return (
+        <Badge variant={status.variant} className={cn(status.className)}>
+            {status.text}
+        </Badge>
+    );
 };
 
 export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirection, isReadOnly }: CardTableProps) {
@@ -88,8 +128,6 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
         <TableBody>
           {records.length > 0 ? (
             records.map((record) => {
-              const isExpired = record.expires && new Date() > record.expires;
-              const isActive = record.active && !isExpired;
               return (
                 <TableRow key={record.id} onClick={() => onViewOrEdit(record)} className="cursor-pointer">
                   <TableCell className="font-medium">{record.staffId}</TableCell>
@@ -104,25 +142,7 @@ export function CardTable({ records, onViewOrEdit, onSort, sortColumn, sortDirec
                     {record.expires ? format(record.expires, 'MMM yyyy') : 'N/A'}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                  <Badge
-                      variant={
-                        isActive
-                          ? 'default'
-                          : isExpired
-                          ? 'destructive'
-                          : 'secondary'
-                      }
-                      className={cn(
-                        isActive && 'bg-green-500 hover:bg-green-500/80',
-                        !isActive && !isExpired && 'bg-gray-500 text-gray-50 hover:bg-gray-500/80',
-                      )}
-                    >
-                      {isActive
-                        ? 'Active'
-                        : isExpired
-                        ? 'Expired'
-                        : 'Deactivated'}
-                    </Badge>
+                    <StatusBadge record={record} />
                   </TableCell>
                   <TableCell>
                     <Button
