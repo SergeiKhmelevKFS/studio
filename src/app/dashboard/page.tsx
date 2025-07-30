@@ -8,6 +8,8 @@ import { initialData } from '@/lib/data';
 import { Header } from '@/components/header';
 import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -18,6 +20,7 @@ export default function DashboardPage() {
   const [editingRecord, setEditingRecord] = useState<CardRecord | null>(null);
   const [sortColumn, setSortColumn] = useState<SortableColumn>('staffId');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
@@ -25,6 +28,17 @@ export default function DashboardPage() {
       router.replace('/');
     }
   }, [router]);
+
+  const filteredRecords = useMemo(() => {
+    if (!searchQuery) return records;
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return records.filter(
+      (record) =>
+        record.staffId?.toLowerCase().includes(lowercasedQuery) ||
+        record.primaryCardholderName?.toLowerCase().includes(lowercasedQuery) ||
+        record.primaryCardNumberBarcode?.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [records, searchQuery]);
 
   const handleSort = (column: SortableColumn) => {
     if (sortColumn === column) {
@@ -36,8 +50,8 @@ export default function DashboardPage() {
   };
 
   const sortedRecords = useMemo(() => {
-    if (!sortColumn) return records;
-    const sorted = [...records].sort((a, b) => {
+    if (!sortColumn) return filteredRecords;
+    const sorted = [...filteredRecords].sort((a, b) => {
       const aValue = a[sortColumn];
       const bValue = b[sortColumn];
 
@@ -56,7 +70,7 @@ export default function DashboardPage() {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sorted;
-  }, [records, sortColumn, sortDirection]);
+  }, [filteredRecords, sortColumn, sortDirection]);
 
   const handleAdd = () => {
     setEditingRecord(null);
@@ -90,6 +104,15 @@ export default function DashboardPage() {
     <div className="min-h-screen w-full bg-background">
       <Header onAdd={handleAdd} onLogout={handleLogout}/>
       <main className="p-4 md:p-8">
+        <div className="mb-4 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Search by Staff ID, Cardholder or Card Number..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full max-w-sm pl-10"
+          />
+        </div>
         <CardTable
           records={sortedRecords}
           onEdit={handleEdit}
