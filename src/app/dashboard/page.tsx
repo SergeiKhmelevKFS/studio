@@ -558,7 +558,7 @@ export default function DashboardPage() {
                                     />
                                     <Bar
                                         dataKey="total"
-                                        radius={4}
+                                        radius={8}
                                     />
                                 </BarChart>
                             ) : (
@@ -627,7 +627,7 @@ export default function DashboardPage() {
                                     <Bar
                                         dataKey="total"
                                         fill={`url(#${gradientId})`}
-                                        radius={4}
+                                        radius={8}
                                     />
                                 </BarChart>
                             );
