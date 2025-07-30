@@ -619,15 +619,8 @@ export default function DashboardPage() {
                                         axisLine={false}
                                         angle={-45}
                                         textAnchor="end"
-                                        minTickGap={-10}
                                         height={50}
-                                        interval={'preserveStartEnd'}
-                                        tickFormatter={(value, index) => {
-                                          if (reportData && reportData.length > 10) {
-                                            return index % 5 === 0 ? value : '';
-                                          }
-                                          return value;
-                                        }}
+                                        interval={reportData && reportData.length > 10 ? 4 : 'preserveStartEnd'}
                                     />
                                     <YAxis />
                                     <ChartTooltip
@@ -757,3 +750,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
