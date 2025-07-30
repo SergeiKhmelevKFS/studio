@@ -249,9 +249,9 @@ export default function DashboardPage() {
           }
         });
         setReportData([
-          { name: 'Active', total: active, fill: 'url(#gradient-active)' },
-          { name: 'Deactivated', total: deactivated, fill: 'url(#gradient-deactivated)' },
-          { name: 'Expired', total: expired, fill: 'url(#gradient-expired)' },
+          { name: 'Active', total: active, fill: 'var(--color-Active)' },
+          { name: 'Deactivated', total: deactivated, fill: 'var(--color-Deactivated)' },
+          { name: 'Expired', total: expired, fill: 'var(--color-Expired)' },
         ]);
       } else if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
         const dailyCounts: { [key: string]: number } = {};
@@ -367,7 +367,6 @@ export default function DashboardPage() {
   const chartConfig = {
     total: {
       label: 'Total',
-      color: 'hsl(var(--chart-green))',
     },
     Active: {
       label: 'Active',
@@ -488,18 +487,19 @@ export default function DashboardPage() {
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
                     {(() => {
                         if (reportType === 'card_statuses') {
+                            const barChartData = reportData.map(item => ({...item, fill: `url(#gradient-${item.name})`}));
                             return chartType === 'bar' ? (
-                                <BarChart accessibilityLayer data={reportData}>
+                                <BarChart accessibilityLayer data={barChartData}>
                                      <defs>
-                                        <linearGradient id="gradient-active" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient id="gradient-Active" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-Active)" stopOpacity={0.8}/>
                                             <stop offset="95%" stopColor="var(--color-Active)" stopOpacity={0.2}/>
                                         </linearGradient>
-                                        <linearGradient id="gradient-deactivated" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient id="gradient-Deactivated" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-Deactivated)" stopOpacity={0.8}/>
                                             <stop offset="95%" stopColor="var(--color-Deactivated)" stopOpacity={0.2}/>
                                         </linearGradient>
-                                        <linearGradient id="gradient-expired" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient id="gradient-Expired" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-Expired)" stopOpacity={0.8}/>
                                             <stop offset="95%" stopColor="var(--color-Expired)" stopOpacity={0.2}/>
                                         </linearGradient>
@@ -520,11 +520,7 @@ export default function DashboardPage() {
                                     <Bar
                                         dataKey="total"
                                         radius={4}
-                                    >
-                                        {reportData.map((entry) => (
-                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!} />
-                                        ))}
-                                    </Bar>
+                                    />
                                 </BarChart>
                             ) : (
                                 <PieChart accessibilityLayer>
@@ -540,7 +536,7 @@ export default function DashboardPage() {
                                         strokeWidth={5}
                                     >
                                          {reportData.map((entry) => (
-                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!.replace('url(','').replace(')','')} className="stroke-background" />
+                                            <Cell key={`cell-${entry.name}`} fill={entry.fill} className="stroke-background" />
                                         ))}
                                     </Pie>
                                      <ChartLegend
