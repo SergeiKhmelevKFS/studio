@@ -87,6 +87,7 @@ export default function DashboardPage() {
 
   const [isSearchingMisuse, setIsSearchingMisuse] = useState(false);
   const [misuseReport, setMisuseReport] = useState<MisuseReportRecord[] | null>(null);
+  const [hasSearchedMisuse, setHasSearchedMisuse] = useState(false);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -441,6 +442,7 @@ export default function DashboardPage() {
 
   const handleSearchMisuse = async () => {
     setIsSearchingMisuse(true);
+    setHasSearchedMisuse(true);
     setMisuseReport(null);
     const result = await detectCardMisuseAction({ cards: records, transactions });
     setMisuseReport(result.flaggedCards);
@@ -449,19 +451,7 @@ export default function DashboardPage() {
 
   const cardsAndUsersView = (
     <>
-       <div className="flex items-center justify-between mt-4 mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Search by Staff ID, Cardholder or Card Number..."
-            value={searchQuery}
-            onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(0);
-            }}
-            className="w-full max-w-sm pl-10"
-          />
-        </div>
+      <div className="flex items-center justify-end mt-4 mb-4">
         {isReadOnly && (
           <Button onClick={handleSearchMisuse} disabled={isSearchingMisuse}>
             {isSearchingMisuse ? (
@@ -479,19 +469,36 @@ export default function DashboardPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           <p className="ml-4 text-muted-foreground">Analyzing transactions for potential misuse...</p>
         </div>
-      ) : misuseReport ? (
-        misuseReport.length > 0 ? (
-            <MisuseReportTable
-              records={misuseReport}
-              onViewTransactions={handleViewTransactions}
-            />
-        ) : (
-            <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
-                <p className="text-muted-foreground">No potential card misuse detected.</p>
-            </div>
-        )
-      ) : (
+      ) : hasSearchedMisuse ? (
         <>
+            {misuseReport && misuseReport.length > 0 ? (
+                <div className="mb-8">
+                    <MisuseReportTable
+                    records={misuseReport}
+                    onViewTransactions={handleViewTransactions}
+                    />
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-48 border rounded-lg bg-gray-50 mb-8">
+                    <p className="text-muted-foreground">No potential card misuse detected.</p>
+                </div>
+            )}
+
+            <h2 className="text-2xl font-bold tracking-tight mb-4">All Card Records</h2>
+            <div className="flex items-center justify-between mt-4 mb-4">
+                <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Search by Staff ID, Cardholder or Card Number..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setPage(0);
+                    }}
+                    className="w-full max-w-sm pl-10"
+                />
+                </div>
+            </div>
             <CardTable
                 records={paginatedRecords}
                 onViewOrEdit={handleViewOrEdit}
@@ -512,6 +519,48 @@ export default function DashboardPage() {
                 }}
             />
         </>
+      ) : (
+        !isReadOnly ? (
+         <>
+            <div className="flex items-center justify-between mt-4 mb-4">
+                <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Search by Staff ID, Cardholder or Card Number..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setPage(0);
+                    }}
+                    className="w-full max-w-sm pl-10"
+                />
+                </div>
+            </div>
+            <CardTable
+                records={paginatedRecords}
+                onViewOrEdit={handleViewOrEdit}
+                onSort={handleSort}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                isReadOnly={isReadOnly}
+                onViewTransactions={handleViewTransactions}
+            />
+            <DataTablePagination
+                count={sortedRecords.length}
+                page={page}
+                onPageChange={setPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(value) => {
+                    setRowsPerPage(parseInt(value, 10));
+                    setPage(0);
+                }}
+            />
+        </>
+        ) : (
+            <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
+              <p className="text-muted-foreground">Click "Search for Misuse" to begin.</p>
+          </div>
+        )
       )}
     </>
   );
