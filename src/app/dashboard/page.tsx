@@ -526,9 +526,8 @@ export default function DashboardPage() {
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-4/5 mx-auto">
                     {(() => {
                         if (reportType === 'card_statuses') {
-                            const barChartData = reportData.map(item => ({...item, fill: `url(#gradient-${item.name})`}));
                             return chartType === 'bar' ? (
-                                <BarChart accessibilityLayer data={barChartData}>
+                                <BarChart accessibilityLayer data={reportData}>
                                      <defs>
                                         <linearGradient id="gradient-Active" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-Active)" stopOpacity={0.8}/>
@@ -559,7 +558,11 @@ export default function DashboardPage() {
                                     <Bar
                                         dataKey="total"
                                         radius={8}
-                                    />
+                                    >
+                                      {reportData.map((entry) => (
+                                        <Cell key={`cell-${entry.name}`} fill={`url(#gradient-${entry.name})`} />
+                                      ))}
+                                    </Bar>
                                 </BarChart>
                             ) : (
                                 <PieChart accessibilityLayer>
@@ -618,6 +621,13 @@ export default function DashboardPage() {
                                         textAnchor="end"
                                         minTickGap={-10}
                                         height={50}
+                                        interval={'preserveStartEnd'}
+                                        tickFormatter={(value, index) => {
+                                          if (reportData && reportData.length > 10) {
+                                            return index % 5 === 0 ? value : '';
+                                          }
+                                          return value;
+                                        }}
                                     />
                                     <YAxis />
                                     <ChartTooltip
