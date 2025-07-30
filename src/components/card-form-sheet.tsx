@@ -483,7 +483,7 @@ export function CardFormSheet({
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Secondary Card (Optional)</CardTitle>
+                    <CardTitle>Secondary Card Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {!isSecondaryCardGenerated ? (
