@@ -37,7 +37,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/date-picker';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertCircle, Search } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, Search, ChevronsUpDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 
 type CardFormSheetProps = {
   open: boolean;
@@ -182,172 +184,184 @@ export function CardFormSheet({
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Address Details</CardTitle>
-                    <CardDescription>
-                      Enter the primary cardholder's address.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="add1"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address Line 1</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. 123 Main St"
-                              {...field}
-                              disabled
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="add2"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address Line 2</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Apt 4B"
-                              {...field}
-                              disabled
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="add3"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address Line 3</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Building C"
-                              {...field}
-                              disabled
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="add4"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address Line 4</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="e.g. London"
-                                {...field}
-                                disabled
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                       <FormField
-                        control={form.control}
-                        name="add5"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address Line 5</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="e.g. United Kingdom"
-                                {...field}
-                                disabled
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="postcode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Postcode</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="e.g. SW1A 0AA"
-                                {...field}
-                                disabled
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                <Collapsible asChild>
+                  <Card>
+                    <div className="flex items-center justify-between p-6 pb-0">
+                      <CardHeader className="p-0">
+                        <CardTitle>Address Details</CardTitle>
+                        <CardDescription>
+                          Enter the primary cardholder's address.
+                        </CardDescription>
+                      </CardHeader>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-9 p-0">
+                          <ChevronsUpDown className="h-4 w-4" />
+                          <span className="sr-only">Toggle</span>
+                        </Button>
+                      </CollapsibleTrigger>
                     </div>
-                    <FormField
-                      control={form.control}
-                      name="overseas"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              disabled
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Overseas Address</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex flex-col items-start gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleValidateAddress}
-                        disabled={isAddressValidating || !record}
-                      >
-                        {isAddressValidating ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="mr-2 h-4 w-4" />
-                        )}
-                        Validate Address with AI
-                      </Button>
-                      {addressValidationResult && (
-                        <Alert
-                          variant={
-                            addressValidationResult.isValid
-                              ? 'default'
-                              : 'destructive'
-                          }
-                        >
-                          {addressValidationResult.isValid ? (
-                            <Sparkles className="h-4 w-4" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4" />
+                    <CollapsibleContent>
+                      <CardContent className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="add1"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address Line 1</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. 123 Main St"
+                                  {...field}
+                                  disabled
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
-                          <AlertTitle>
-                            {addressValidationResult.isValid
-                              ? 'Address Validated'
-                              : 'Validation Issues'}
-                          </AlertTitle>
-                          <AlertDescription>
-                            {addressValidationResult.validationMessage}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                        />
+                        <FormField
+                          control={form.control}
+                          name="add2"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address Line 2</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. Apt 4B"
+                                  {...field}
+                                  disabled
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="add3"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Address Line 3</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. Building C"
+                                  {...field}
+                                  disabled
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <FormField
+                            control={form.control}
+                            name="add4"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Address Line 4</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="e.g. London"
+                                    {...field}
+                                    disabled
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="add5"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Address Line 5</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="e.g. United Kingdom"
+                                    {...field}
+                                    disabled
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="postcode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Postcode</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="e.g. SW1A 0AA"
+                                    {...field}
+                                    disabled
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="overseas"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  disabled
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Overseas Address</FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex flex-col items-start gap-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleValidateAddress}
+                            disabled={isAddressValidating || !record}
+                          >
+                            {isAddressValidating ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="mr-2 h-4 w-4" />
+                            )}
+                            Validate Address with AI
+                          </Button>
+                          {addressValidationResult && (
+                            <Alert
+                              variant={
+                                addressValidationResult.isValid
+                                  ? 'default'
+                                  : 'destructive'
+                              }
+                            >
+                              {addressValidationResult.isValid ? (
+                                <Sparkles className="h-4 w-4" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4" />
+                              )}
+                              <AlertTitle>
+                                {addressValidationResult.isValid
+                                  ? 'Address Validated'
+                                  : 'Validation Issues'}
+                              </AlertTitle>
+                              <AlertDescription>
+                                {addressValidationResult.validationMessage}
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
 
                 <Card>
                   <CardHeader>
@@ -355,7 +369,7 @@ export function CardFormSheet({
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="primaryCardNumberBarcode"
                         render={({ field }) => (
@@ -368,7 +382,7 @@ export function CardFormSheet({
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="cardNumberEnding"
                         render={({ field }) => (
@@ -377,7 +391,7 @@ export function CardFormSheet({
                             <FormControl>
                               <Input placeholder="Last 4 digits" {...field} />
                             </FormControl>
-                             <FormMessage />
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -404,7 +418,7 @@ export function CardFormSheet({
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
                             <FormLabel>Expires On</FormLabel>
-                             <DatePicker
+                            <DatePicker
                               value={field.value}
                               onChange={field.onChange}
                             />
@@ -412,13 +426,13 @@ export function CardFormSheet({
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="primaryCardIssueDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
                             <FormLabel>Primary Card Issue Date</FormLabel>
-                             <DatePicker
+                            <DatePicker
                               value={field.value}
                               onChange={field.onChange}
                               disabled
@@ -427,13 +441,13 @@ export function CardFormSheet({
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="primaryReplacementCardIssueDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
                             <FormLabel>Replacement Issue Date</FormLabel>
-                             <DatePicker
+                            <DatePicker
                               value={field.value}
                               onChange={field.onChange}
                               disabled
@@ -442,19 +456,19 @@ export function CardFormSheet({
                         )}
                       />
                     </div>
-                     <FormField
-                        control={form.control}
-                        name="cardsToIssue"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Cards To Issue</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="cardsToIssue"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cards To Issue</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
 
@@ -463,7 +477,7 @@ export function CardFormSheet({
                     <CardTitle>Secondary Card (Optional)</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="cardholderName2"
                       render={({ field }) => (
@@ -505,11 +519,11 @@ export function CardFormSheet({
                 </Card>
 
                 <Card>
-                   <CardHeader>
+                  <CardHeader>
                     <CardTitle>Flags & Configuration</CardTitle>
                   </CardHeader>
-                   <CardContent className="space-y-4">
-                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}
                         name="letterFlag"
@@ -527,18 +541,18 @@ export function CardFormSheet({
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="nextPrimaryCardToBeCharged"
                         render={({ field }) => (
-                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                             <div className="space-y-1 leading-none">
+                            <div className="space-y-1 leading-none">
                               <FormLabel>Next card to be charged?</FormLabel>
                             </div>
                           </FormItem>
