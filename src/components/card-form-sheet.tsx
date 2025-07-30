@@ -349,44 +349,6 @@ export function CardFormSheet({
                             </FormItem>
                           )}
                         />
-                        <div className="flex flex-col items-start gap-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleValidateAddress}
-                            disabled={isAddressValidating || !record}
-                          >
-                            {isAddressValidating ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Sparkles className="mr-2 h-4 w-4" />
-                            )}
-                            Validate Address with AI
-                          </Button>
-                          {addressValidationResult && (
-                            <Alert
-                              variant={
-                                addressValidationResult.isValid
-                                  ? 'default'
-                                  : 'destructive'
-                              }
-                            >
-                              {addressValidationResult.isValid ? (
-                                <Sparkles className="h-4 w-4" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4" />
-                              )}
-                              <AlertTitle>
-                                {addressValidationResult.isValid
-                                  ? 'Address Validated'
-                                  : 'Validation Issues'}
-                              </AlertTitle>
-                              <AlertDescription>
-                                {addressValidationResult.validationMessage}
-                              </AlertDescription>
-                            </Alert>
-                          )}
-                        </div>
                       </CardContent>
                     </CollapsibleContent>
                   </Card>
