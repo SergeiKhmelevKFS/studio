@@ -523,7 +523,7 @@ export default function DashboardPage() {
                 )}
             </CardHeader>
             <CardContent>
-                <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                <ChartContainer config={chartConfig} className="min-h-[200px] w-4/5 mx-auto">
                     {(() => {
                         if (reportType === 'card_statuses') {
                             const barChartData = reportData.map(item => ({...item, fill: `url(#gradient-${item.name})`}));
