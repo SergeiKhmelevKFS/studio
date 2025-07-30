@@ -141,7 +141,7 @@ export function CardFormSheet({
                               <Input
                                 placeholder="e.g. S-12345"
                                 {...field}
-                                disabled={!record}
+                                disabled
                               />
                             </FormControl>
                             <FormMessage />
@@ -158,7 +158,7 @@ export function CardFormSheet({
                               <Input
                                 placeholder="e.g. Acme Corporation"
                                 {...field}
-                                disabled={!record}
+                                disabled
                               />
                             </FormControl>
                             <FormMessage />
@@ -200,7 +200,7 @@ export function CardFormSheet({
                             <Input
                               placeholder="e.g. 123 Main St"
                               {...field}
-                              disabled={!record}
+                              disabled
                             />
                           </FormControl>
                           <FormMessage />
@@ -217,7 +217,7 @@ export function CardFormSheet({
                             <Input
                               placeholder="e.g. Apt 4B"
                               {...field}
-                              disabled={!record}
+                              disabled
                             />
                           </FormControl>
                         </FormItem>
@@ -233,7 +233,7 @@ export function CardFormSheet({
                             <Input
                               placeholder="e.g. Building C"
                               {...field}
-                              disabled={!record}
+                              disabled
                             />
                           </FormControl>
                         </FormItem>
@@ -250,7 +250,7 @@ export function CardFormSheet({
                               <Input
                                 placeholder="e.g. London"
                                 {...field}
-                                disabled={!record}
+                                disabled
                               />
                             </FormControl>
                           </FormItem>
@@ -266,7 +266,7 @@ export function CardFormSheet({
                               <Input
                                 placeholder="e.g. United Kingdom"
                                 {...field}
-                                disabled={!record}
+                                disabled
                               />
                             </FormControl>
                           </FormItem>
@@ -282,7 +282,7 @@ export function CardFormSheet({
                               <Input
                                 placeholder="e.g. SW1A 0AA"
                                 {...field}
-                                disabled={!record}
+                                disabled
                               />
                             </FormControl>
                             <FormMessage />
@@ -299,7 +299,7 @@ export function CardFormSheet({
                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
-                              disabled={!record}
+                              disabled
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
@@ -362,7 +362,7 @@ export function CardFormSheet({
                           <FormItem>
                             <FormLabel>Primary Card Number & Barcode</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={!record} />
+                              <Input {...field} disabled />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -392,7 +392,7 @@ export function CardFormSheet({
                             <DatePicker
                               value={field.value}
                               onChange={field.onChange}
-                              disabled={!record}
+                              disabled
                             />
                             <FormMessage />
                           </FormItem>
@@ -421,7 +421,7 @@ export function CardFormSheet({
                              <DatePicker
                               value={field.value}
                               onChange={field.onChange}
-                              disabled={!record}
+                              disabled
                             />
                             <FormMessage />
                           </FormItem>
@@ -436,7 +436,7 @@ export function CardFormSheet({
                              <DatePicker
                               value={field.value}
                               onChange={field.onChange}
-                              disabled={!record}
+                              disabled
                             />
                           </FormItem>
                         )}
@@ -483,7 +483,7 @@ export function CardFormSheet({
                           <FormItem>
                             <FormLabel>Secondary Card Number</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={!record} />
+                              <Input {...field} disabled />
                             </FormControl>
                           </FormItem>
                         )}
