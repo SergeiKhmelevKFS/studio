@@ -624,3 +624,22 @@ for (let i = 0; i < 100; i++) {
         payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
     });
 }
+
+const user10Card = initialData.find(record => record.id === '10');
+
+if (user10Card) {
+    for (let i = 0; i < 10; i++) {
+        const transactionAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
+        initialTransactions.push({
+            id: `txn_user10_${i + 1}`,
+            cardRecordId: user10Card.id!,
+            cardNumber: user10Card.primaryCardNumberBarcode,
+            transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000), // within last 60 days
+            transaction_store: stores[Math.floor(Math.random() * stores.length)],
+            transaction_amount: transactionAmount,
+            transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
+            payer_name: user10Card.primaryCardholderName,
+            payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+        });
+    }
+}
