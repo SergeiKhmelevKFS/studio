@@ -524,11 +524,29 @@ export default function DashboardPage() {
     </div>
   );
 
+  const adminView = (
+    <div className="pt-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin Dashboard</CardTitle>
+          <CardDescription>
+            Welcome to the admin dashboard. System management tools are available here.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>Admin specific components and tools will be displayed here.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   return (
     <div className="min-h-screen w-full bg-background">
       <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} username={user?.username} />
       <main className="p-4 md:p-8">
-        {user?.role === 'Digital Discount Card Manager' ? (
+        {user?.role === 'Administrator' ? (
+          adminView
+        ) : user?.role === 'Digital Discount Card Manager' ? (
           <Tabs defaultValue="cards_users" className="w-full">
             <TabsList>
               <TabsTrigger value="cards_users">Cards & Users</TabsTrigger>
