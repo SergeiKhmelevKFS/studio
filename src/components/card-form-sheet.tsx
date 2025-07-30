@@ -89,10 +89,10 @@ export function CardFormSheet({
   };
   
   const handleGenerateCard = () => {
-    const randomCardNumber = Math.floor(
-      100000000000 + Math.random() * 900000000000
-    ).toString();
-    form.setValue('primaryCardNumberBarcode', randomCardNumber);
+    const staffId = form.getValues('staffId') || '';
+    const numericStaffId = staffId.replace(/\D/g, ''); // Remove non-digits
+    const cardNumber = `635666${numericStaffId}`;
+    form.setValue('primaryCardNumberBarcode', cardNumber);
     form.setValue('primaryCardIssueDate', new Date());
     setIsCardGenerated(true);
   };
