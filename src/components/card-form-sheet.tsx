@@ -69,7 +69,7 @@ export function CardFormSheet({
       // If we are creating a new record, generate a random staff ID
       const initialValues = record ? record : {
         ...cardSchema.partial().default,
-        staffId: `S-${Math.floor(100000 + Math.random() * 900000)}`,
+        staffId: `${Math.floor(100000 + Math.random() * 900000)}`,
         companyName: 'B&Q',
       };
       form.reset(initialValues as CardRecord);
@@ -158,7 +158,7 @@ export function CardFormSheet({
                             <FormLabel>Staff ID</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="e.g. S-12345"
+                                placeholder="e.g. 123456"
                                 {...field}
                                 disabled
                               />
