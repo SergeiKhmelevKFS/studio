@@ -14,6 +14,13 @@ import { DataTablePagination } from '@/components/data-table-pagination';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
+const getStatusSortValue = (record: CardRecord): number => {
+    const isExpired = record.expires && new Date() > record.expires;
+    if (isExpired) return 2; // Expired
+    if (record.active) return 0; // Active
+    return 1; // Deactivated
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [records, setRecords] = useState<CardRecord[]>(initialData);
@@ -64,13 +71,9 @@ export default function DashboardPage() {
 
       let comparison = 0;
       if (sortColumn === 'active') {
-        const aStatus = a.active && a.expires && new Date() < a.expires;
-        const bStatus = b.active && b.expires && new Date() < b.expires;
-        if (aStatus === bStatus) {
-            comparison = 0;
-        } else {
-            comparison = aStatus ? -1 : 1;
-        }
+        const aStatusValue = getStatusSortValue(a);
+        const bStatusValue = getStatusSortValue(b);
+        comparison = aStatusValue - bStatusValue;
       } else if (typeof aValue === 'string' && typeof bValue === 'string') {
         comparison = aValue.localeCompare(bValue);
       } else if (aValue instanceof Date && bValue instanceof Date) {
