@@ -26,6 +26,7 @@ export const initialData: CardRecord[] = [
     cardNumber2: '',
     primaryReplacementCardIssueDate: undefined,
     primaryPartCardNumberBarcode: '',
+    active: true,
   },
   {
     id: '2',
@@ -52,5 +53,6 @@ export const initialData: CardRecord[] = [
     cardNumber2: '9876543210987655',
     primaryReplacementCardIssueDate: new Date('2023-08-20'),
     primaryPartCardNumberBarcode: 'P-9876',
+    active: false,
   },
 ];

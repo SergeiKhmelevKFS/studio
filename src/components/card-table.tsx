@@ -43,6 +43,7 @@ export function CardTable({ records, onEdit }: CardTableProps) {
           {records.length > 0 ? (
             records.map((record) => {
               const isExpired = new Date() > record.expires;
+              const isActive = record.active && !isExpired;
               return (
                 <TableRow key={record.id}>
                   <TableCell className="font-medium">{record.staffId}</TableCell>
@@ -57,8 +58,8 @@ export function CardTable({ records, onEdit }: CardTableProps) {
                     {format(record.expires, 'MMM yyyy')}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={isExpired ? 'destructive' : 'default'} className={cn(!isExpired && 'bg-green-500 hover:bg-green-500/80')}>
-                      {isExpired ? 'Expired' : 'Active'}
+                    <Badge variant={isActive ? 'default' : 'destructive'} className={cn(isActive && 'bg-green-500 hover:bg-green-500/80')}>
+                      {isActive ? 'Active' : isExpired ? 'Expired' : 'Deactivated'}
                     </Badge>
                   </TableCell>
                   <TableCell>

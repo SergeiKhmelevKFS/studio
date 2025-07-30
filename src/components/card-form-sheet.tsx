@@ -38,6 +38,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/date-picker';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, AlertCircle, Search, ChevronsUpDown } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
@@ -72,6 +73,7 @@ export function CardFormSheet({
         ...cardSchema.partial().default,
         staffId: `${Math.floor(100000 + Math.random() * 900000)}`,
         companyName: 'B&Q',
+        active: true,
       };
       form.reset(initialValues as CardRecord);
       setAddressValidationResult(null);
@@ -401,6 +403,28 @@ export function CardFormSheet({
                       </Button>
                     ) : (
                       <>
+                        {record && <FormField
+                          control={form.control}
+                          name="active"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                  Card Active
+                                </FormLabel>
+                                <FormDescription>
+                                  Deactivating the card will prevent its use.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
                             control={form.control}

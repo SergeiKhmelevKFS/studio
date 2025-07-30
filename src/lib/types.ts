@@ -27,6 +27,7 @@ export const cardSchema = z.object({
   fullCardNoInCirculation: z.string().optional(),
   primaryCardType: z.string().optional(),
   nextPrimaryCardToBeCharged: z.boolean().default(false),
+  active: z.boolean().default(true),
 });
 
 export type CardRecord = z.infer<typeof cardSchema>;
