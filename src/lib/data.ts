@@ -526,6 +526,8 @@ const startDateJuly2025Daily = new Date('2025-07-01');
 let currentIdForJuly2025 = 500; 
 
 for (let i = 0; i < 5; i++) { // From July 1 to 5
+    const currentDate = new Date(startDateJuly2025Daily);
+    currentDate.setDate(startDateJuly2025Daily.getDate() + i);
     const numberOfRows = Math.floor(Math.random() * 5) + 1; // 1 to 5 random rows
 
     for (let j = 0; j < numberOfRows; j++) {
@@ -552,7 +554,7 @@ for (let i = 0; i < 5; i++) { // From July 1 to 5
             expires: new Date(2027, currentDate.getMonth(), currentDate.getDate()),
             letterFlag: Math.random() > 0.5,
             overseas: country !== 'UK',
-            primaryCardIssueDate: currentDate,
+            primaryCardIssueDate: new Date(currentDate),
             fullCardNoInCirculation: `635666${staffId}`,
             primaryCardType: 'Standard',
             nextPrimaryCardToBeCharged: Math.random() > 0.5,
