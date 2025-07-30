@@ -398,7 +398,7 @@ export const initialData: CardRecord[] = [
     const company = `Company ${String.fromCharCode(65 + (i % 26))}`;
     const country = i % 3 === 0 ? 'UK' : i % 3 === 1 ? 'USA' : 'Canada';
     const city = country === 'UK' ? 'London' : country === 'USA' ? 'New York' : 'Toronto';
-    const active = Math.random() > 0.3;
+    const active = (i % 10) > 2; // Deterministic "random"
     const expired = new Date() > new Date(2025, i % 12, (i % 28) + 1);
     
     return {
@@ -416,12 +416,12 @@ export const initialData: CardRecord[] = [
       postcode: `${10000 + i}`,
       validFrom: new Date(2023, i % 12, (i % 28) + 1),
       expires: new Date(2025, i % 12, (i % 28) + 1),
-      letterFlag: Math.random() > 0.5,
+      letterFlag: (i % 2) === 0,
       overseas: country !== 'UK',
       primaryCardIssueDate: new Date(2023, i % 12, (i % 28) + 1),
       fullCardNoInCirculation: `635666${staffId}`,
       primaryCardType: 'Standard',
-      nextPrimaryCardToBeCharged: Math.random() > 0.5,
+      nextPrimaryCardToBeCharged: (i % 2) === 0,
       cardholderName2: '',
       cardNumber2: '',
       primaryReplacementCardIssueDate: undefined,
@@ -436,8 +436,8 @@ const julyRecords: CardRecord[] = [];
 const startDateJuly = new Date('2024-07-01');
 let currentId = 214;
 for (let i = 0; i < 31; i++) {
-    const currentDate = new Date(startDateJuly);
-    currentDate.setDate(startDateJuly.getDate() + i);
+    const loopDate = new Date(startDateJuly);
+    loopDate.setDate(startDateJuly.getDate() + i);
 
     for (let j = 0; j < 3; j++) {
         const staffId = (300000 + currentId).toString();
@@ -445,8 +445,8 @@ for (let i = 0; i < 31; i++) {
         const company = `Company ${String.fromCharCode(65 + (currentId % 26))}`;
         const country = currentId % 3 === 0 ? 'UK' : currentId % 3 === 1 ? 'USA' : 'Canada';
         const city = country === 'UK' ? 'London' : country === 'USA' ? 'New York' : 'Toronto';
-        const active = Math.random() > 0.3;
-        const expired = new Date() > new Date(2025, currentDate.getMonth(), currentDate.getDate());
+        const active = (currentId % 10) > 2; // Deterministic
+        const expired = new Date() > new Date(2025, loopDate.getMonth(), loopDate.getDate());
 
         julyRecords.push({
             id: currentId.toString(),
@@ -461,14 +461,14 @@ for (let i = 0; i < 31; i++) {
             add4: city,
             add5: country,
             postcode: `${20000 + currentId}`,
-            validFrom: currentDate,
-            expires: new Date(2025, currentDate.getMonth(), currentDate.getDate()),
-            letterFlag: Math.random() > 0.5,
+            validFrom: loopDate,
+            expires: new Date(2025, loopDate.getMonth(), loopDate.getDate()),
+            letterFlag: (currentId % 2) === 0,
             overseas: country !== 'UK',
-            primaryCardIssueDate: currentDate,
+            primaryCardIssueDate: loopDate,
             fullCardNoInCirculation: `635666${staffId}`,
             primaryCardType: 'Standard',
-            nextPrimaryCardToBeCharged: Math.random() > 0.5,
+            nextPrimaryCardToBeCharged: (currentId % 2) === 0,
             cardholderName2: '',
             cardNumber2: '',
             primaryReplacementCardIssueDate: undefined,
@@ -484,8 +484,8 @@ initialData.push(...julyRecords);
 const july2025Records: CardRecord[] = [];
 const startDateJuly2025 = new Date('2025-07-01');
 for (let i = 0; i < 10; i++) {
-    const currentDate = new Date(startDateJuly2025);
-    currentDate.setDate(startDateJuly2025.getDate() + i);
+    const loopDate = new Date(startDateJuly2025);
+    loopDate.setDate(startDateJuly2025.getDate() + i);
     const staffId = (400000 + i).toString();
     const name = `Future User ${i+1}`;
     const company = `Company Future ${String.fromCharCode(65 + (i % 26))}`;
@@ -504,14 +504,14 @@ for (let i = 0; i < 10; i++) {
         add4: city,
         add5: country,
         postcode: `${30000 + i}`,
-        validFrom: currentDate,
-        expires: new Date(2027, currentDate.getMonth(), currentDate.getDate()),
-        letterFlag: Math.random() > 0.5,
+        validFrom: loopDate,
+        expires: new Date(2027, loopDate.getMonth(), loopDate.getDate()),
+        letterFlag: (i % 2) === 0,
         overseas: country !== 'UK',
-        primaryCardIssueDate: currentDate,
+        primaryCardIssueDate: loopDate,
         fullCardNoInCirculation: `635666${staffId}`,
         primaryCardType: 'Standard',
-        nextPrimaryCardToBeCharged: Math.random() > 0.5,
+        nextPrimaryCardToBeCharged: (i % 2) === 0,
         cardholderName2: '',
         cardNumber2: '',
         primaryReplacementCardIssueDate: undefined,
@@ -526,9 +526,9 @@ const startDateJuly2025Daily = new Date('2025-07-01');
 let currentIdForJuly2025 = 500; 
 
 for (let i = 0; i < 5; i++) { // From July 1 to 5
-    const currentDate = new Date(startDateJuly2025Daily);
-    currentDate.setDate(startDateJuly2025Daily.getDate() + i);
-    const numberOfRows = Math.floor(Math.random() * 5) + 1; // 1 to 5 random rows
+    const loopDate = new Date(startDateJuly2025Daily);
+    loopDate.setDate(startDateJuly2025Daily.getDate() + i);
+    const numberOfRows = (i % 5) + 1; // 1 to 5 deterministic rows
 
     for (let j = 0; j < numberOfRows; j++) {
         const staffId = (500000 + currentIdForJuly2025).toString();
@@ -550,14 +550,14 @@ for (let i = 0; i < 5; i++) { // From July 1 to 5
             add4: city,
             add5: country,
             postcode: `${40000 + currentIdForJuly2025}`,
-            validFrom: currentDate,
-            expires: new Date(2027, currentDate.getMonth(), currentDate.getDate()),
-            letterFlag: Math.random() > 0.5,
+            validFrom: loopDate,
+            expires: new Date(2027, loopDate.getMonth(), loopDate.getDate()),
+            letterFlag: (currentIdForJuly2025 % 2) === 0,
             overseas: country !== 'UK',
-            primaryCardIssueDate: new Date(currentDate),
+            primaryCardIssueDate: new Date(loopDate),
             fullCardNoInCirculation: `635666${staffId}`,
             primaryCardType: 'Standard',
-            nextPrimaryCardToBeCharged: Math.random() > 0.5,
+            nextPrimaryCardToBeCharged: (currentIdForJuly2025 % 2) === 0,
             cardholderName2: '',
             cardNumber2: '',
             primaryReplacementCardIssueDate: undefined,
@@ -638,22 +638,22 @@ const stores = [
 ];
 
 for (let i = 0; i < 100; i++) {
-    const cardRecord = initialData[Math.floor(Math.random() * initialData.length)];
-    const transactionAmount = parseFloat((Math.random() * 500 + 20).toFixed(2));
+    const cardRecord = initialData[i % initialData.length];
+    const transactionAmount = parseFloat(((i * 5) % 500 + 20).toFixed(2));
     const payerName = i < 50
         ? cardRecord.primaryCardholderName
-        : randomNames[Math.floor(Math.random() * randomNames.length)];
+        : randomNames[i % randomNames.length];
 
     initialTransactions.push({
         id: `txn_gen_${i + 5}`,
         cardRecordId: cardRecord.id!,
         cardNumber: cardRecord.primaryCardNumberBarcode,
-        transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
-        transaction_store: stores[Math.floor(Math.random() * stores.length)],
+        transaction_datetime: new Date(Date.now() - (i % 30) * 24 * 60 * 60 * 1000),
+        transaction_store: stores[i % stores.length],
         transaction_amount: transactionAmount,
         transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
         payer_name: payerName,
-        payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+        payer_card_number: `**** **** **** ${1000 + (i%9000)}`,
     });
 }
 
@@ -661,17 +661,17 @@ const user10Card = initialData.find(record => record.id === '10');
 
 if (user10Card) {
     for (let i = 0; i < 10; i++) {
-        const transactionAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
+        const transactionAmount = parseFloat(((i * 7) % 200 + 10).toFixed(2));
         initialTransactions.push({
             id: `txn_user10_${i + 1}`,
             cardRecordId: user10Card.id!,
             cardNumber: user10Card.primaryCardNumberBarcode,
-            transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000), // within last 60 days
-            transaction_store: stores[Math.floor(Math.random() * stores.length)],
+            transaction_datetime: new Date(Date.now() - (i % 60) * 24 * 60 * 60 * 1000), // within last 60 days
+            transaction_store: stores[i % stores.length],
             transaction_amount: transactionAmount,
             transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
             payer_name: user10Card.primaryCardholderName,
-            payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+            payer_card_number: `**** **** **** ${2000 + (i % 1000)}`,
         });
     }
 }
@@ -680,17 +680,17 @@ const user100102Card = initialData.find(record => record.staffId === '100102');
 
 if (user100102Card) {
     for (let i = 0; i < 10; i++) {
-        const transactionAmount = parseFloat((Math.random() * 300 + 15).toFixed(2));
+        const transactionAmount = parseFloat(((i * 11) % 300 + 15).toFixed(2));
         initialTransactions.push({
             id: `txn_user100102_${i + 1}`,
             cardRecordId: user100102Card.id!,
             cardNumber: user100102Card.primaryCardNumberBarcode,
-            transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 45) * 24 * 60 * 60 * 1000), // within last 45 days
-            transaction_store: stores[Math.floor(Math.random() * stores.length)],
+            transaction_datetime: new Date(Date.now() - (i % 45) * 24 * 60 * 60 * 1000), // within last 45 days
+            transaction_store: stores[i % stores.length],
             transaction_amount: transactionAmount,
             transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
             payer_name: user100102Card.primaryCardholderName,
-            payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+            payer_card_number: `**** **** **** ${3000 + (i % 1000)}`,
         });
     }
 }
@@ -699,21 +699,21 @@ const user100103Card = initialData.find(record => record.staffId === '100103');
 
 if (user100103Card) {
     for (let i = 0; i < 10; i++) {
-        const transactionAmount = parseFloat((Math.random() * 400 + 25).toFixed(2));
+        const transactionAmount = parseFloat(((i * 13) % 400 + 25).toFixed(2));
         const payerName = i < 5
             ? user100103Card.primaryCardholderName
-            : randomNames[Math.floor(Math.random() * randomNames.length)];
+            : randomNames[i % randomNames.length];
 
         initialTransactions.push({
             id: `txn_user100103_${i + 1}`,
             cardRecordId: user100103Card.id!,
             cardNumber: user100103Card.primaryCardNumberBarcode,
-            transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 50) * 24 * 60 * 60 * 1000), // within last 50 days
-            transaction_store: stores[Math.floor(Math.random() * stores.length)],
+            transaction_datetime: new Date(Date.now() - (i % 50) * 24 * 60 * 60 * 1000), // within last 50 days
+            transaction_store: stores[i % stores.length],
             transaction_amount: transactionAmount,
             transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
             payer_name: payerName,
-            payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+            payer_card_number: `**** **** **** ${4000 + (i % 1000)}`,
         });
     }
 }
@@ -788,3 +788,5 @@ initialTransactions.push({
     payer_name: geoCard.primaryCardholderName,
     payer_card_number: '**** **** **** 3333'
 });
+
+    
