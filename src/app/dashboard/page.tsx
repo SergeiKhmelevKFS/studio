@@ -196,10 +196,35 @@ export default function DashboardPage() {
             dateField = 'primaryCardIssueDate';
         } else if (reportType === 'expired_cards') {
             dateField = 'expires';
+        } else if (reportType === 'deactivated_cards') {
+          // For deactivated cards, we don't have a specific date field.
+          // This report will show cards that are currently not active and not expired.
+          // The date range might be used to filter by another date field if needed,
+          // but for now, we'll assume it applies to when the record was last relevant (e.g., expiry).
+          // This logic can be refined based on more specific requirements.
+          dataSet = records.filter(record => {
+              const isExpired = record.expires && new Date() > record.expires;
+              return !record.active && !isExpired;
+          });
+          // This is a simplification. A real implementation would need a 'deactivated_date' field.
+          // We will count them by expiry date for this prototype.
+          dateField = 'expires'; 
+           dataSet = dataSet.filter(record => {
+            const dateValue = record[dateField] as Date | undefined;
+            return dateValue && dateValue >= start && dateValue <= end;
+          });
         }
+
 
         dataSet = records.filter(record => {
             const dateValue = record[dateField] as Date | undefined;
+            
+            if (reportType === 'deactivated_cards') {
+              const isExpired = record.expires && new Date() > record.expires;
+              const isDeactivated = !record.active && !isExpired;
+              return isDeactivated && dateValue && dateValue >= start && dateValue <= end;
+            }
+
             return dateValue && dateValue >= start && dateValue <= end;
         });
       }
@@ -225,7 +250,7 @@ export default function DashboardPage() {
           { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
           { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
         ]);
-      } else if (reportType === 'new_cards' || reportType === 'expired_cards') {
+      } else if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
         const dailyCounts: { [key: string]: number } = {};
         dataSet.forEach(record => {
           const dateValue = record[dateField] as Date | undefined;
@@ -254,6 +279,8 @@ export default function DashboardPage() {
         dataToExport = reportData.map(d => ({ Date: d.name, 'New Cards': d.total }));
     } else if (reportType === 'expired_cards') {
         dataToExport = reportData.map(d => ({ Date: d.name, 'Expired Cards': d.total }));
+    } else if (reportType === 'deactivated_cards') {
+        dataToExport = reportData.map(d => ({ Date: d.name, 'Deactivated Cards': d.total }));
     } else {
          dataToExport = reportData.map(d => ({ Status: d.name, Total: d.total }));
     }
@@ -386,89 +413,107 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                    {reportType === 'card_statuses' ? (
-                        chartType === 'bar' ? (
-                            <BarChart accessibilityLayer data={reportData}>
-                                <CartesianGrid vertical={false} />
-                                <XAxis
-                                    dataKey="name"
-                                    tickLine={false}
-                                    tickMargin={10}
-                                    axisLine={false}
-                                    tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
-                                />
-                                <YAxis />
-                                <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent indicator="dot" />}
-                                />
-                                <Bar
-                                    dataKey="total"
-                                    radius={4}
-                                >
-                                    {reportData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={entry.fill!} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        ) : (
-                            <PieChart accessibilityLayer>
-                                <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent hideLabel />}
-                                />
-                                <Pie
-                                    data={reportData}
-                                    dataKey="total"
-                                    nameKey="name"
-                                    innerRadius={60}
-                                    strokeWidth={5}
-                                >
-                                     {reportData.map((entry) => (
-                                        <Cell key={`cell-${entry.name}`} fill={entry.fill!} className="stroke-background" />
-                                    ))}
-                                </Pie>
-                                 <ChartLegend
-                                    content={<ChartLegendContent nameKey="name" />}
-                                    className="-translate-y-[2rem] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                                  />
-                            </PieChart>
-                        )
-                    ) : reportType === 'new_cards' || reportType === 'expired_cards' ? (
-                        <BarChart accessibilityLayer data={reportData}>
-                            <CartesianGrid vertical={false} />
-                            <XAxis
-                                dataKey="name"
-                                tickLine={false}
-                                tickMargin={10}
-                                axisLine={false}
-                                angle={-45}
-                                textAnchor="end"
-                                minTickGap={-10}
-                                height={50}
-                            />
-                            <YAxis />
-                            <ChartTooltip
-                                cursor={false}
-                                content={<ChartTooltipContent />}
-                            />
-                            <Bar
-                                dataKey="total"
-                                fill={reportType === 'new_cards' ? "hsl(var(--chart-green))" : "hsl(var(--chart-red))"}
-                                radius={4}
-                            />
-                        </BarChart>
-                    ) : null}
+                    {(() => {
+                        if (reportType === 'card_statuses') {
+                            return chartType === 'bar' ? (
+                                <BarChart accessibilityLayer data={reportData}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        tickLine={false}
+                                        tickMargin={10}
+                                        axisLine={false}
+                                        tickFormatter={(value) => chartConfig[value as keyof typeof chartConfig]?.label}
+                                    />
+                                    <YAxis />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent indicator="dot" />}
+                                    />
+                                    <Bar
+                                        dataKey="total"
+                                        radius={4}
+                                    >
+                                        {reportData.map((entry) => (
+                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            ) : (
+                                <PieChart accessibilityLayer>
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent hideLabel />}
+                                    />
+                                    <Pie
+                                        data={reportData}
+                                        dataKey="total"
+                                        nameKey="name"
+                                        innerRadius={60}
+                                        strokeWidth={5}
+                                    >
+                                         {reportData.map((entry) => (
+                                            <Cell key={`cell-${entry.name}`} fill={entry.fill!} className="stroke-background" />
+                                        ))}
+                                    </Pie>
+                                     <ChartLegend
+                                        content={<ChartLegendContent nameKey="name" />}
+                                        className="-translate-y-[2rem] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                                      />
+                                </PieChart>
+                            );
+                        }
+                        if (reportType === 'new_cards' || reportType === 'expired_cards' || reportType === 'deactivated_cards') {
+                            let barColor = "hsl(var(--chart-gray))";
+                            if (reportType === 'new_cards') barColor = "hsl(var(--chart-green))";
+                            if (reportType === 'expired_cards') barColor = "hsl(var(--chart-red))";
+
+                            return (
+                                <BarChart accessibilityLayer data={reportData}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        tickLine={false}
+                                        tickMargin={10}
+                                        axisLine={false}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        minTickGap={-10}
+                                        height={50}
+                                    />
+                                    <YAxis />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent />}
+                                    />
+                                    <Bar
+                                        dataKey="total"
+                                        fill={barColor}
+                                        radius={4}
+                                    />
+                                </BarChart>
+                            );
+                        }
+                        return null;
+                    })()}
                 </ChartContainer>
             </CardContent>
           </Card>
-          {reportType === 'card_statuses' ? (
-            <ReportTable data={reportData} />
-          ) : reportType === 'new_cards' ? (
-            <DailyReportTable data={reportData} title="New Cards Data" valueHeader="New Cards Issued" />
-          ) : reportType === 'expired_cards' ? (
-            <DailyReportTable data={reportData} title="Expired Cards Data" valueHeader="Expired Cards" />
-          ) : null }
+          {(() => {
+            if (reportType === 'card_statuses') {
+              return <ReportTable data={reportData} />;
+            }
+            if (reportType === 'new_cards') {
+              return <DailyReportTable data={reportData} title="New Cards Data" valueHeader="New Cards Issued" />;
+            }
+            if (reportType === 'expired_cards') {
+                return <DailyReportTable data={reportData} title="Expired Cards Data" valueHeader="Expired Cards" />;
+            }
+             if (reportType === 'deactivated_cards') {
+                return <DailyReportTable data={reportData} title="Deactivated Cards Data" valueHeader="Deactivated Cards" />;
+            }
+            return null;
+          })()}
           </>
         ) : (
           <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
