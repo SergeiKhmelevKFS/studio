@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   
   const isReadOnly = user?.role === 'Fraud Analyst';
+  const isDateRangeDisabled = reportType === 'card_statuses';
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
@@ -160,26 +161,37 @@ export default function DashboardPage() {
   };
 
   const handleGenerateReport = () => {
-    if (!reportType || !reportStartDate || !reportEndDate) {
+    if (!reportType) {
       setReportData(null);
       return;
+    }
+    if (reportType !== 'card_statuses' && (!reportStartDate || !reportEndDate)) {
+        setReportData(null);
+        return;
     }
     setIsGeneratingReport(true);
     setReportData(null);
 
     // Simulate API call
     setTimeout(() => {
-      const filtered = records.filter(record => {
-        const issueDate = record.primaryCardIssueDate;
-        return issueDate >= reportStartDate && issueDate <= reportEndDate;
-      });
+      let dataSet: CardRecord[];
+      
+      if (reportType === 'card_statuses') {
+        dataSet = records;
+      } else {
+        dataSet = records.filter(record => {
+            const issueDate = record.primaryCardIssueDate;
+            return issueDate >= reportStartDate! && issueDate <= reportEndDate!;
+        });
+      }
+
 
       if (reportType === 'card_statuses') {
         let active = 0;
         let deactivated = 0;
         let expired = 0;
 
-        filtered.forEach(record => {
+        dataSet.forEach(record => {
           const isExpired = record.expires && new Date() > record.expires;
           if (isExpired) {
             expired++;
@@ -275,9 +287,9 @@ export default function DashboardPage() {
         <div className="grid gap-2">
             <Label>Date Range</Label>
             <div className="flex items-center gap-2">
-                <DatePicker value={reportStartDate} onChange={setReportStartDate} />
+                <DatePicker value={reportStartDate} onChange={setReportStartDate} disabled={isDateRangeDisabled} />
                 <span className="text-muted-foreground">to</span>
-                <DatePicker value={reportEndDate} onChange={setReportEndDate} />
+                <DatePicker value={reportEndDate} onChange={setReportEndDate} disabled={isDateRangeDisabled} />
             </div>
         </div>
         <div className="flex items-end">
@@ -297,8 +309,10 @@ export default function DashboardPage() {
             <CardHeader>
                 <CardTitle>{reportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</CardTitle>
                 <CardDescription>
-                    {reportStartDate && reportEndDate && 
-                        `From ${reportStartDate.toLocaleDateString()} to ${reportEndDate.toLocaleDateString()}`
+                    {reportType === 'card_statuses'
+                        ? 'Current status of all cards in the system.'
+                        : reportStartDate && reportEndDate && 
+                          `From ${reportStartDate.toLocaleDateString()} to ${reportEndDate.toLocaleDateString()}`
                     }
                 </CardDescription>
             </CardHeader>
