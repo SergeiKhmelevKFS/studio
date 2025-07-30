@@ -358,6 +358,39 @@ export const initialData: CardRecord[] = [
     primaryPartCardNumberBarcode: '',
     active: true,
   },
+  // Misuse test case: Payer Mismatch
+  {
+    id: 'misuse-payer',
+    staffId: '999001',
+    companyName: 'Test Corp',
+    primaryCardholderName: 'John Smith',
+    primaryCardNumberBarcode: '635666999001',
+    active: true,
+    add1: '1 Test St', postcode: '12345',
+    validFrom: new Date(), expires: new Date(2026, 1, 1), primaryCardIssueDate: new Date(),
+  },
+  // Misuse test case: High Frequency
+  {
+    id: 'misuse-frequency',
+    staffId: '999002',
+    companyName: 'Test Corp',
+    primaryCardholderName: 'Jane Doe',
+    primaryCardNumberBarcode: '635666999002',
+    active: true,
+    add1: '2 Test St', postcode: '12345',
+    validFrom: new Date(), expires: new Date(2026, 1, 1), primaryCardIssueDate: new Date(),
+  },
+  // Misuse test case: Geographic Velocity
+  {
+    id: 'misuse-geo',
+    staffId: '999003',
+    companyName: 'Test Corp',
+    primaryCardholderName: 'Peter Jones',
+    primaryCardNumberBarcode: '635666999003',
+    active: true,
+    add1: '3 Test St', postcode: '12345',
+    validFrom: new Date(), expires: new Date(2026, 1, 1), primaryCardIssueDate: new Date(),
+  },
   ...Array.from({ length: 200 }, (_, i) => {
     const id = (14 + i).toString();
     const staffId = (100000 + i).toString();
@@ -493,9 +526,6 @@ const startDateJuly2025Daily = new Date('2025-07-01');
 let currentIdForJuly2025 = 500; 
 
 for (let i = 0; i < 5; i++) { // From July 1 to 5
-    const currentDate = new Date(startDateJuly2025Daily);
-    currentDate.setDate(startDateJuly2025Daily.getDate() + i);
-
     const numberOfRows = Math.floor(Math.random() * 5) + 1; // 1 to 5 random rows
 
     for (let j = 0; j < numberOfRows; j++) {
@@ -685,3 +715,74 @@ if (user100103Card) {
         });
     }
 }
+
+// Data for Payer Mismatch Rule
+const payerMismatchCard = initialData.find(c => c.id === 'misuse-payer')!;
+for(let i = 0; i < 5; i++) {
+    initialTransactions.push({
+        id: `txn_payer_mismatch_${i}`,
+        cardRecordId: payerMismatchCard.id!,
+        cardNumber: payerMismatchCard.primaryCardNumberBarcode,
+        transaction_datetime: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
+        transaction_store: 'B&Q London',
+        transaction_amount: 50,
+        transaction_discount: 5,
+        payer_name: randomNames[i], // Different name
+        payer_card_number: '**** **** **** 1111'
+    });
+}
+initialTransactions.push({
+    id: `txn_payer_match_1`,
+    cardRecordId: payerMismatchCard.id!,
+    cardNumber: payerMismatchCard.primaryCardNumberBarcode,
+    transaction_datetime: new Date(Date.now() - (6 * 24 * 60 * 60 * 1000)),
+    transaction_store: 'B&Q London',
+    transaction_amount: 50,
+    transaction_discount: 5,
+    payer_name: payerMismatchCard.primaryCardholderName, // Matching name
+    payer_card_number: '**** **** **** 1111'
+});
+
+
+// Data for High Frequency Rule
+const highFrequencyCard = initialData.find(c => c.id === 'misuse-frequency')!;
+const now = new Date();
+for(let i = 0; i < 4; i++) {
+    initialTransactions.push({
+        id: `txn_freq_${i}`,
+        cardRecordId: highFrequencyCard.id!,
+        cardNumber: highFrequencyCard.primaryCardNumberBarcode,
+        transaction_datetime: new Date(now.getTime() - (i * 60 * 60 * 1000)), // 4 transactions in 4 hours
+        transaction_store: `B&Q Manchester`,
+        transaction_amount: 20,
+        transaction_discount: 2,
+        payer_name: highFrequencyCard.primaryCardholderName,
+        payer_card_number: '**** **** **** 2222'
+    });
+}
+
+// Data for Geographic Velocity Rule
+const geoCard = initialData.find(c => c.id === 'misuse-geo')!;
+const geoTime = new Date();
+initialTransactions.push({
+    id: `txn_geo_1`,
+    cardRecordId: geoCard.id!,
+    cardNumber: geoCard.primaryCardNumberBarcode,
+    transaction_datetime: geoTime,
+    transaction_store: 'B&Q London', // Location 1
+    transaction_amount: 75,
+    transaction_discount: 7.5,
+    payer_name: geoCard.primaryCardholderName,
+    payer_card_number: '**** **** **** 3333'
+});
+initialTransactions.push({
+    id: `txn_geo_2`,
+    cardRecordId: geoCard.id!,
+    cardNumber: geoCard.primaryCardNumberBarcode,
+    transaction_datetime: new Date(geoTime.getTime() + (60 * 60 * 1000)), // 1 hour later
+    transaction_store: 'B&Q New York', // Impossible to travel to
+    transaction_amount: 80,
+    transaction_discount: 8,
+    payer_name: geoCard.primaryCardholderName,
+    payer_card_number: '**** **** **** 3333'
+});

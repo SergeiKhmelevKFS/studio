@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download, UserPlus, Trash, List } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus, Trash, List, AlertTriangle } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,6 +29,8 @@ import { UserTable } from '@/components/user-table';
 import { UserFormSheet } from '@/components/user-form-sheet';
 import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
 import { TransactionSheet } from '@/components/transaction-sheet';
+import { MisuseReportTable, type MisuseReportRecord } from '@/components/misuse-report-table';
+import { detectCardMisuseAction } from '@/lib/actions';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -82,6 +84,9 @@ export default function DashboardPage() {
   const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false);
   const [selectedCardTransactions, setSelectedCardTransactions] = useState<TransactionRecord[]>([]);
   const [selectedCardForTransactions, setSelectedCardForTransactions] = useState<CardRecord | null>(null);
+
+  const [isSearchingMisuse, setIsSearchingMisuse] = useState(false);
+  const [misuseReport, setMisuseReport] = useState<MisuseReportRecord[] | null>(null);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -434,39 +439,80 @@ export default function DashboardPage() {
     setIsTransactionSheetOpen(true);
   };
 
+  const handleSearchMisuse = async () => {
+    setIsSearchingMisuse(true);
+    setMisuseReport(null);
+    const result = await detectCardMisuseAction({ cards: records, transactions });
+    setMisuseReport(result.flaggedCards);
+    setIsSearchingMisuse(false);
+  };
+
   const cardsAndUsersView = (
     <>
-      <div className="mb-4 relative mt-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Search by Staff ID, Cardholder or Card Number..."
-          value={searchQuery}
-          onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(0);
-          }}
-          className="w-full max-w-sm pl-10"
-        />
+       <div className="flex items-center justify-between mt-4 mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Search by Staff ID, Cardholder or Card Number..."
+            value={searchQuery}
+            onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(0);
+            }}
+            className="w-full max-w-sm pl-10"
+          />
+        </div>
+        {isReadOnly && (
+          <Button onClick={handleSearchMisuse} disabled={isSearchingMisuse}>
+            {isSearchingMisuse ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <AlertTriangle className="mr-2 h-4 w-4" />
+            )}
+            Search for Misuse
+          </Button>
+        )}
       </div>
-      <CardTable
-        records={paginatedRecords}
-        onViewOrEdit={handleViewOrEdit}
-        onSort={handleSort}
-        sortColumn={sortColumn}
-        sortDirection={sortDirection}
-        isReadOnly={isReadOnly}
-        onViewTransactions={handleViewTransactions}
-      />
-      <DataTablePagination
-          count={sortedRecords.length}
-          page={page}
-          onPageChange={setPage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(value) => {
-              setRowsPerPage(parseInt(value, 10));
-              setPage(0);
-          }}
-      />
+
+      {isSearchingMisuse ? (
+        <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="ml-4 text-muted-foreground">Analyzing transactions for potential misuse...</p>
+        </div>
+      ) : misuseReport ? (
+        misuseReport.length > 0 ? (
+            <MisuseReportTable
+              records={misuseReport}
+              onViewTransactions={handleViewTransactions}
+            />
+        ) : (
+            <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
+                <p className="text-muted-foreground">No potential card misuse detected.</p>
+            </div>
+        )
+      ) : (
+        <>
+            <CardTable
+                records={paginatedRecords}
+                onViewOrEdit={handleViewOrEdit}
+                onSort={handleSort}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                isReadOnly={isReadOnly}
+                onViewTransactions={handleViewTransactions}
+            />
+            <DataTablePagination
+                count={sortedRecords.length}
+                page={page}
+                onPageChange={setPage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(value) => {
+                    setRowsPerPage(parseInt(value, 10));
+                    setPage(0);
+                }}
+            />
+        </>
+      )}
     </>
   );
 
@@ -537,11 +583,11 @@ export default function DashboardPage() {
                 )}
             </CardHeader>
             <CardContent>
-                <ChartContainer config={chartConfig} className="min-h-[200px] w-4/5 mx-auto">
+                <ChartContainer config={chartConfig} className="w-4/5 mx-auto">
                     {(() => {
                         if (reportType === 'card_statuses') {
                             return chartType === 'bar' ? (
-                                <BarChart accessibilityLayer data={reportData}>
+                                <BarChart accessibilityLayer data={reportData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                      <defs>
                                         <linearGradient id="gradient-Active" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="var(--color-Active)" stopOpacity={0.8}/>
@@ -610,7 +656,7 @@ export default function DashboardPage() {
 
 
                             return (
-                                <BarChart accessibilityLayer data={reportData}>
+                                <BarChart accessibilityLayer data={reportData} margin={{ top: 20, right: 20, bottom: 70, left: 20 }}>
                                     <defs>
                                         <linearGradient id="gradient-green" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="hsl(var(--chart-green))" stopOpacity={0.8}/>
@@ -634,7 +680,7 @@ export default function DashboardPage() {
                                         angle={-45}
                                         textAnchor="end"
                                         height={70}
-                                        interval={reportData && reportData.length > 10 ? 4 : 'preserveStartEnd'}
+                                        interval={Math.floor((reportData?.length || 0) / 7)}
                                     />
                                     <YAxis />
                                     <ChartTooltip

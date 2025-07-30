@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -5,6 +6,11 @@ import {
   type ValidateAddressInput,
   type ValidateAddressOutput,
 } from '@/ai/flows/validate-address';
+import { 
+    detectCardMisuse,
+    type DetectCardMisuseInput,
+    type DetectCardMisuseOutput,
+} from '@/ai/flows/detect-card-misuse';
 
 export async function validateAddressAction(
   address: ValidateAddressInput
@@ -21,3 +27,17 @@ export async function validateAddressAction(
     };
   }
 }
+
+export async function detectCardMisuseAction(
+    input: DetectCardMisuseInput
+  ): Promise<DetectCardMisuseOutput> {
+    try {
+      const result = await detectCardMisuse(input);
+      return result;
+    } catch (error) {
+      console.error('Error detecting card misuse:', error);
+      return {
+        flaggedCards: [],
+      };
+    }
+  }
