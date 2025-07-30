@@ -42,7 +42,7 @@ export function CardTable({ records, onEdit }: CardTableProps) {
         <TableBody>
           {records.length > 0 ? (
             records.map((record) => {
-              const isExpired = new Date() > record.expires;
+              const isExpired = record.expires && new Date() > record.expires;
               const isActive = record.active && !isExpired;
               return (
                 <TableRow key={record.id}>
@@ -55,7 +55,7 @@ export function CardTable({ records, onEdit }: CardTableProps) {
                     {record.primaryCardNumberBarcode}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    {format(record.expires, 'MMM yyyy')}
+                    {record.expires ? format(record.expires, 'MMM yyyy') : 'N/A'}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                   <Badge
