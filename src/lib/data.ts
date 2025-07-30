@@ -662,3 +662,26 @@ if (user100102Card) {
         });
     }
 }
+
+const user100103Card = initialData.find(record => record.staffId === '100103');
+
+if (user100103Card) {
+    for (let i = 0; i < 10; i++) {
+        const transactionAmount = parseFloat((Math.random() * 400 + 25).toFixed(2));
+        const payerName = i < 5
+            ? user100103Card.primaryCardholderName
+            : randomNames[Math.floor(Math.random() * randomNames.length)];
+
+        initialTransactions.push({
+            id: `txn_user100103_${i + 1}`,
+            cardRecordId: user100103Card.id!,
+            cardNumber: user100103Card.primaryCardNumberBarcode,
+            transaction_datetime: new Date(Date.now() - Math.floor(Math.random() * 50) * 24 * 60 * 60 * 1000), // within last 50 days
+            transaction_store: stores[Math.floor(Math.random() * stores.length)],
+            transaction_amount: transactionAmount,
+            transaction_discount: parseFloat((transactionAmount * 0.1).toFixed(2)),
+            payer_name: payerName,
+            payer_card_number: `**** **** **** ${Math.floor(Math.random() * 9000) + 1000}`,
+        });
+    }
+}
