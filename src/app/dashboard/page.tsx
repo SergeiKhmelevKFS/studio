@@ -24,7 +24,7 @@ import { Switch } from '@/components/ui/switch';
 import { ReportTable } from '@/components/report-table';
 import { DailyReportTable } from '@/components/daily-report-table';
 import type { User, UserRecord } from '@/lib/users';
-import { users as userRecords } from '@/lib/users';
+import { users as defaultUsers } from '@/lib/users';
 import { UserTable } from '@/components/user-table';
 import { UserFormSheet } from '@/components/user-form-sheet';
 
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
   
-  const [users, setUsers] = useState<UserRecord[]>(Object.entries(userRecords).map(([username, data]) => ({...data, username})));
+  const [users, setUsers] = useState<UserRecord[]>([]);
   const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
 
@@ -80,6 +80,15 @@ export default function DashboardPage() {
     const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
         setUser(JSON.parse(storedUser));
+    }
+
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+        setUsers(JSON.parse(storedUsers));
+    } else {
+        const userRecords = Object.entries(defaultUsers).map(([username, data]) => ({ ...data, username }))
+        setUsers(userRecords);
+        localStorage.setItem('users', JSON.stringify(userRecords));
     }
   }, [router]);
 
@@ -290,12 +299,15 @@ export default function DashboardPage() {
   };
   
   const handleSaveUser = (userData: UserRecord) => {
+    let updatedUsers;
     const existingUser = users.find(u => u.username === userData.username);
     if (existingUser) {
-      setUsers(users.map(u => u.username === userData.username ? userData : u));
+        updatedUsers = users.map(u => (u.username === userData.username ? userData : u));
     } else {
-      setUsers([...users, userData]);
+        updatedUsers = [...users, userData];
     }
+    setUsers(updatedUsers);
+    localStorage.setItem('users', JSON.stringify(updatedUsers));
     setIsUserSheetOpen(false);
     setEditingUser(null);
   };

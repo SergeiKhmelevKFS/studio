@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { users } from '@/lib/users';
+import { users as defaultUsers, type UserRecord } from '@/lib/users';
 
 const Logo = () => (
     <svg
@@ -46,6 +46,23 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [users, setUsers] = useState<Record<string, { password: string, role: string }>>({});
+
+  useEffect(() => {
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+      const parsedUsers: UserRecord[] = JSON.parse(storedUsers);
+      const usersRecord = parsedUsers.reduce((acc, user) => {
+        acc[user.username.toLowerCase()] = { password: user.password, role: user.role };
+        return acc;
+      }, {} as Record<string, { password: string, role: string }>);
+      setUsers(usersRecord);
+    } else {
+      setUsers(defaultUsers);
+      const userRecords = Object.entries(defaultUsers).map(([username, data]) => ({...data, username}));
+      localStorage.setItem('users', JSON.stringify(userRecords));
+    }
+  }, []);
 
   const handleLogin = () => {
     const user = users[username.toLowerCase()];
