@@ -391,7 +391,7 @@ export function CardFormSheet({
                             name="primaryCardNumberBarcode"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Primary Card Number & Barcode</FormLabel>
+                                <FormLabel>Primary Card Number</FormLabel>
                                 <FormControl>
                                   <Input {...field} disabled />
                                 </FormControl>
