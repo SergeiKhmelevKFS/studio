@@ -22,7 +22,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { Switch } from '@/components/ui/switch';
 import { ReportTable } from '@/components/report-table';
-import * as XLSX from 'xlsx';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -221,8 +220,9 @@ export default function DashboardPage() {
     }, 1000);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!reportData) return;
+    const XLSX = await import('xlsx');
     const worksheet = XLSX.utils.json_to_sheet(reportData.map(d => ({ Status: d.name, Total: d.total })));
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
