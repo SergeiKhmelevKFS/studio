@@ -420,7 +420,7 @@ export function CardFormSheet({
                                 <DatePicker
                                   value={field.value}
                                   onChange={field.onChange}
-                                  disabled
+                                  disabled={!!record}
                                 />
                                 <FormMessage />
                               </FormItem>
