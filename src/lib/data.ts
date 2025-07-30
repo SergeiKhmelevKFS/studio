@@ -487,3 +487,52 @@ for (let i = 0; i < 10; i++) {
     });
 }
 initialData.push(...july2025Records);
+
+const july2025DailyRecords: CardRecord[] = [];
+const startDateJuly2025Daily = new Date('2025-07-01');
+let currentIdForJuly2025 = 500; 
+
+for (let i = 0; i < 5; i++) { // From July 1 to 5
+    const currentDate = new Date(startDateJuly2025Daily);
+    currentDate.setDate(startDateJuly2025Daily.getDate() + i);
+
+    const numberOfRows = Math.floor(Math.random() * 5) + 1; // 1 to 5 random rows
+
+    for (let j = 0; j < numberOfRows; j++) {
+        const staffId = (500000 + currentIdForJuly2025).toString();
+        const name = `July 2025 User ${i+1}-${j+1}`;
+        const company = `Company Random ${String.fromCharCode(65 + (currentIdForJuly2025 % 26))}`;
+        const country = currentIdForJuly2025 % 2 === 0 ? 'UK' : 'USA';
+        const city = country === 'UK' ? 'Bristol' : 'Boston';
+        
+        july2025DailyRecords.push({
+            id: currentIdForJuly2025.toString(),
+            staffId,
+            companyName: company,
+            primaryCardholderName: name,
+            primaryCardNumberBarcode: `635666${staffId}`,
+            magStripe: `MS${staffId}`,
+            add1: `${500 + currentIdForJuly2025} Random St`,
+            add2: '',
+            add3: '',
+            add4: city,
+            add5: country,
+            postcode: `${40000 + currentIdForJuly2025}`,
+            validFrom: currentDate,
+            expires: new Date(2027, currentDate.getMonth(), currentDate.getDate()),
+            letterFlag: Math.random() > 0.5,
+            overseas: country !== 'UK',
+            primaryCardIssueDate: currentDate,
+            fullCardNoInCirculation: `635666${staffId}`,
+            primaryCardType: 'Standard',
+            nextPrimaryCardToBeCharged: Math.random() > 0.5,
+            cardholderName2: '',
+            cardNumber2: '',
+            primaryReplacementCardIssueDate: undefined,
+            primaryPartCardNumberBarcode: '',
+            active: true,
+        });
+        currentIdForJuly2025++;
+    }
+}
+initialData.push(...july2025DailyRecords);
