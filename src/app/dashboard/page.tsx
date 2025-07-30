@@ -619,7 +619,7 @@ export default function DashboardPage() {
                                         axisLine={false}
                                         angle={-45}
                                         textAnchor="end"
-                                        height={50}
+                                        height={70}
                                         interval={reportData && reportData.length > 10 ? 4 : 'preserveStartEnd'}
                                     />
                                     <YAxis />
