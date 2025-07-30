@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -67,6 +67,7 @@ export default function DashboardPage() {
   const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
 
+  const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
   const isDateRangeDisabled = reportType === 'card_statuses';
 
@@ -136,7 +137,7 @@ export default function DashboardPage() {
     return sortedRecords.slice(start, end);
   }, [sortedRecords, page, rowsPerPage]);
 
-  const handleAdd = () => {
+  const handleAddCard = () => {
     if (isReadOnly) return;
     setEditingRecord(null);
     setIsSheetOpen(true);
@@ -277,6 +278,11 @@ export default function DashboardPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
     XLSX.writeFile(workbook, `${reportType}_report.xlsx`);
   };
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsUserSheetOpen(true);
+  };
   
   const handleEditUser = (user: UserRecord) => {
     setEditingUser(user);
@@ -284,7 +290,12 @@ export default function DashboardPage() {
   };
   
   const handleSaveUser = (userData: UserRecord) => {
-    setUsers(users.map(u => u.username === userData.username ? userData : u));
+    const existingUser = users.find(u => u.username === userData.username);
+    if (existingUser) {
+      setUsers(users.map(u => u.username === userData.username ? userData : u));
+    } else {
+      setUsers([...users, userData]);
+    }
     setIsUserSheetOpen(false);
     setEditingUser(null);
   };
@@ -524,23 +535,22 @@ export default function DashboardPage() {
 
   const adminView = (
     <div className="pt-4 space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin Dashboard</CardTitle>
-          <CardDescription>
-            Welcome to the admin dashboard. System management tools are available here.
-          </CardDescription>
-        </CardHeader>
-      </Card>
       <UserTable users={users} onEdit={handleEditUser} />
     </div>
   );
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} isReadOnly={isReadOnly} username={user?.username} />
+      <Header
+        onAdd={isAdmin ? handleAddUser : handleAddCard}
+        onLogout={handleLogout}
+        onProfileClick={handleProfileClick}
+        isReadOnly={isReadOnly}
+        username={user?.username}
+        isAdmin={isAdmin}
+      />
       <main className="p-4 md:p-8">
-        {user?.role === 'Administrator' ? (
+        {isAdmin ? (
           adminView
         ) : user?.role === 'Digital Discount Card Manager' ? (
           <Tabs defaultValue="cards_users" className="w-full">

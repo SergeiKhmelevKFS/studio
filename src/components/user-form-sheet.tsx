@@ -48,12 +48,12 @@ export function UserFormSheet({
 }: UserFormSheetProps) {
   const form = useForm<UserRecord>({
     resolver: zodResolver(userSchema),
-    defaultValues: user || {},
+    defaultValues: user || { username: '', password: '', role: 'Fraud Analyst' },
   });
 
   useEffect(() => {
     if (open) {
-      form.reset(user || {});
+      form.reset(user || { username: '', password: '', role: 'Fraud Analyst' });
     }
   }, [open, user, form]);
 
@@ -65,7 +65,7 @@ export function UserFormSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>{user ? 'Edit User' : 'Add User'}</SheetTitle>
+          <SheetTitle>{user ? 'Edit User' : 'Add New User'}</SheetTitle>
           <SheetDescription>
             {user
               ? 'Update the user details.'
@@ -124,7 +124,7 @@ export function UserFormSheet({
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter new password to change" {...field} />
+                    <Input type="password" placeholder={user ? "Enter new password to change" : "Enter password"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
