@@ -66,6 +66,8 @@ export default function DashboardPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [isUserSheetOpen, setIsUserSheetOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [userSortColumn, setUserSortColumn] = useState<keyof UserRecord>('username');
+  const [userSortDirection, setUserSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -312,6 +314,32 @@ export default function DashboardPage() {
     setEditingUser(null);
   };
 
+  const handleUserSort = (column: keyof UserRecord) => {
+    if (userSortColumn === column) {
+      setUserSortDirection(userSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setUserSortColumn(column);
+      setUserSortDirection('asc');
+    }
+  };
+
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => {
+      const aValue = a[userSortColumn];
+      const bValue = b[userSortColumn];
+
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+
+      let comparison = 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue);
+      }
+
+      return userSortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [users, userSortColumn, userSortDirection]);
+
   const chartConfig = {
     total: {
       label: 'Total',
@@ -547,7 +575,13 @@ export default function DashboardPage() {
 
   const adminView = (
     <div className="pt-4 space-y-4">
-      <UserTable users={users} onEdit={handleEditUser} />
+      <UserTable
+        users={sortedUsers}
+        onEdit={handleEditUser}
+        onSort={handleUserSort}
+        sortColumn={userSortColumn}
+        sortDirection={userSortDirection}
+      />
     </div>
   );
 

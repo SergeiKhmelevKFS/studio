@@ -11,21 +11,44 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, ArrowUpDown } from 'lucide-react';
 
 type UserTableProps = {
   users: UserRecord[];
   onEdit: (user: UserRecord) => void;
+  onSort: (column: keyof UserRecord) => void;
+  sortColumn: keyof UserRecord;
+  sortDirection: 'asc' | 'desc';
 };
 
-export function UserTable({ users, onEdit }: UserTableProps) {
+export function UserTable({ users, onEdit, onSort, sortColumn, sortDirection }: UserTableProps) {
+    const renderSortIcon = (column: keyof UserRecord) => {
+        if (sortColumn !== column) {
+            return <ArrowUpDown className="ml-2 h-4 w-4" />;
+        }
+        return sortDirection === 'asc' ? (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        );
+    };
   return (
     <div className="rounded-lg border bg-card shadow-sm">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Username</TableHead>
-            <TableHead>Role</TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('username')}>
+                    Username
+                    {renderSortIcon('username')}
+                </Button>
+            </TableHead>
+            <TableHead>
+                <Button variant="ghost" onClick={() => onSort('role')}>
+                    Role
+                    {renderSortIcon('role')}
+                </Button>
+            </TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
