@@ -37,7 +37,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/date-picker';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, Search } from 'lucide-react';
 
 type CardFormSheetProps = {
   open: boolean;
@@ -108,6 +108,23 @@ export function CardFormSheet({
           >
             <ScrollArea className="flex-1">
               <div className="space-y-6 p-1 pr-6">
+                {!record && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>User Search</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-4">
+                      <Input
+                        placeholder="Enter user details to search"
+                        className="flex-grow"
+                      />
+                      <Button type="button">
+                        <Search className="mr-2 h-4 w-4" />
+                        Search
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
                 <Card>
                   <CardHeader>
                     <CardTitle>Holder Information</CardTitle>
