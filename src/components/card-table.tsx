@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 type CardTableProps = {
   records: CardRecord[];
@@ -63,7 +64,7 @@ export function CardTable({ records, onEdit, onDelete }: CardTableProps) {
                     {format(record.expires, 'MMM yyyy')}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={isExpired ? 'destructive' : 'secondary'}>
+                    <Badge variant={isExpired ? 'destructive' : 'default'} className={cn(!isExpired && 'bg-green-500 hover:bg-green-500/80')}>
                       {isExpired ? 'Expired' : 'Active'}
                     </Badge>
                   </TableCell>
