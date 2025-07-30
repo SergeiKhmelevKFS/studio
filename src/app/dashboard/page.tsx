@@ -63,12 +63,18 @@ export default function DashboardPage() {
       if (bValue === undefined || bValue === null) return -1;
 
       let comparison = 0;
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (sortColumn === 'active') {
+        const aStatus = a.active && a.expires && new Date() < a.expires;
+        const bStatus = b.active && b.expires && new Date() < b.expires;
+        if (aStatus === bStatus) {
+            comparison = 0;
+        } else {
+            comparison = aStatus ? -1 : 1;
+        }
+      } else if (typeof aValue === 'string' && typeof bValue === 'string') {
         comparison = aValue.localeCompare(bValue);
       } else if (aValue instanceof Date && bValue instanceof Date) {
         comparison = aValue.getTime() - bValue.getTime();
-      } else if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
-        comparison = aValue === bValue ? 0 : aValue ? -1 : 1;
       }
 
       return sortDirection === 'asc' ? comparison : -comparison;
