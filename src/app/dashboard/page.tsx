@@ -10,27 +10,35 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
 const getStatusSortValue = (record: CardRecord): number => {
     const isExpired = record.expires && new Date() > record.expires;
-    if (isExpired) return 2; // Expired
-    if (record.active) return 0; // Active
-    return 1; // Deactivated
+    if (isExpired) return 2; 
+    if (record.active) return 0; 
+    return 1; 
 };
 
 type User = {
     username: string;
     role: string;
 };
+
+type ReportData = {
+    name: string;
+    total: number;
+}[];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,9 +52,12 @@ export default function DashboardPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [user, setUser] = useState<User | null>(null);
+  
   const [reportType, setReportType] = useState('');
   const [reportStartDate, setReportStartDate] = useState<Date | undefined>();
   const [reportEndDate, setReportEndDate] = useState<Date | undefined>();
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   
   const isReadOnly = user?.role === 'Fraud Analyst';
 
@@ -148,6 +159,67 @@ export default function DashboardPage() {
     setIsProfileSheetOpen(true);
   };
 
+  const handleGenerateReport = () => {
+    if (!reportType || !reportStartDate || !reportEndDate) {
+      setReportData(null);
+      return;
+    }
+    setIsGeneratingReport(true);
+    setReportData(null);
+
+    // Simulate API call
+    setTimeout(() => {
+      const filtered = records.filter(record => {
+        const issueDate = record.primaryCardIssueDate;
+        return issueDate >= reportStartDate && issueDate <= reportEndDate;
+      });
+
+      if (reportType === 'card_statuses') {
+        let active = 0;
+        let deactivated = 0;
+        let expired = 0;
+
+        filtered.forEach(record => {
+          const isExpired = record.expires && new Date() > record.expires;
+          if (isExpired) {
+            expired++;
+          } else if (record.active) {
+            active++;
+          } else {
+            deactivated++;
+          }
+        });
+        setReportData([
+          { name: 'Active', total: active },
+          { name: 'Deactivated', total: deactivated },
+          { name: 'Expired', total: expired },
+        ]);
+      } else {
+        // Handle other report types here
+        setReportData([]);
+      }
+      setIsGeneratingReport(false);
+    }, 1000);
+  };
+
+  const chartConfig = {
+    total: {
+      label: 'Total',
+    },
+    active: {
+      label: 'Active',
+      color: 'hsl(var(--chart-2))',
+    },
+    deactivated: {
+      label: 'Deactivated',
+      color: 'hsl(var(--chart-3))',
+    },
+    expired: {
+      label: 'Expired',
+      color: 'hsl(var(--chart-5))',
+    },
+  } satisfies ChartConfig;
+
   const cardsAndUsersView = (
     <>
       <div className="mb-4 relative mt-4">
@@ -209,11 +281,56 @@ export default function DashboardPage() {
             </div>
         </div>
         <div className="flex items-end">
-            <Button>Generate Report</Button>
+            <Button onClick={handleGenerateReport} disabled={isGeneratingReport}>
+                {isGeneratingReport && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Generate Report
+            </Button>
         </div>
       </div>
-       <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
-          <p className="text-muted-foreground">Report results will be displayed here.</p>
+       <div className="h-96">
+        {isGeneratingReport ? (
+           <div className="flex items-center justify-center h-full border rounded-lg bg-gray-50">
+             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+           </div>
+        ) : reportData ? (
+          <Card>
+            <CardHeader>
+                <CardTitle>{reportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</CardTitle>
+                <CardDescription>
+                    {reportStartDate && reportEndDate && 
+                        `From ${reportStartDate.toLocaleDateString()} to ${reportEndDate.toLocaleDateString()}`
+                    }
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                    <BarChart accessibilityLayer data={reportData}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="name"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                        />
+                         <YAxis />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Bar 
+                            dataKey="total" 
+                            radius={4} 
+                            fill="var(--color-active)"
+                        />
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex items-center justify-center h-full border rounded-lg bg-gray-50">
+              <p className="text-muted-foreground">Select report criteria and click "Generate Report".</p>
+          </div>
+        )}
        </div>
     </div>
   );
@@ -253,4 +370,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
