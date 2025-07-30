@@ -71,6 +71,7 @@ export default function DashboardPage() {
   const [userSortDirection, setUserSortDirection] = useState<'asc' | 'desc'>('asc');
   const [deletingUser, setDeletingUser] = useState<UserRecord | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -357,6 +358,12 @@ export default function DashboardPage() {
     });
   }, [users, userSortColumn, userSortDirection]);
 
+  const filteredUsers = useMemo(() => {
+    if (!userSearchQuery) return sortedUsers;
+    const lowercasedQuery = userSearchQuery.toLowerCase();
+    return sortedUsers.filter(user => user.username.toLowerCase().includes(lowercasedQuery));
+  }, [sortedUsers, userSearchQuery]);
+
   const chartConfig = {
     total: {
       label: 'Total',
@@ -592,8 +599,17 @@ export default function DashboardPage() {
 
   const adminView = (
     <div className="pt-4 space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Search by username..."
+          value={userSearchQuery}
+          onChange={(e) => setUserSearchQuery(e.target.value)}
+          className="w-full max-w-sm pl-10"
+        />
+      </div>
       <UserTable
-        users={sortedUsers}
+        users={filteredUsers}
         onEdit={handleEditUser}
         onDelete={handleDeleteUserClick}
         onSort={handleUserSort}
