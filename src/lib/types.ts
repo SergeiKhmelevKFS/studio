@@ -26,10 +26,6 @@ export const cardSchema = z.object({
   }),
   primaryReplacementCardIssueDate: z.coerce.date().optional(),
   primaryPartCardNumberBarcode: z.string().optional(),
-  cardNumberEnding: z
-    .string()
-    .length(4, 'Must be the last 4 digits')
-    .optional(),
   fullCardNoInCirculation: z.string().optional(),
   primaryCardType: z.string().optional(),
   nextPrimaryCardToBeCharged: z.boolean().default(false),

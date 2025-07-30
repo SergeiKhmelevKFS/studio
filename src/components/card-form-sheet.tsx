@@ -399,19 +399,6 @@ export function CardFormSheet({
                               </FormItem>
                             )}
                           />
-                          <FormField
-                            control={form.control}
-                            name="cardNumberEnding"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Card Number Ending</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Last 4 digits" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FormField
