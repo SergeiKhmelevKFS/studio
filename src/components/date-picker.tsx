@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -20,8 +21,15 @@ type DatePickerProps = {
 };
 
 export function DatePicker({ value, onChange, disabled }: DatePickerProps) {
+  const [open, setOpen] = React.useState(false);
+
+  const handleDateSelect = (date?: Date) => {
+    onChange(date);
+    setOpen(false);
+  };
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={'outline'}
@@ -39,7 +47,7 @@ export function DatePicker({ value, onChange, disabled }: DatePickerProps) {
         <Calendar
           mode="single"
           selected={value}
-          onSelect={onChange}
+          onSelect={handleDateSelect}
           initialFocus
         />
       </PopoverContent>
