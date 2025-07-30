@@ -104,7 +104,7 @@ export function CardFormSheet({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-1 flex-col"
+            className="flex flex-1 flex-col overflow-hidden"
           >
             <ScrollArea className="flex-1">
               <div className="space-y-6 p-1 pr-6">
@@ -502,7 +502,7 @@ export function CardFormSheet({
                 </Card>
               </div>
             </ScrollArea>
-            <SheetFooter className="mt-auto p-6 pt-4">
+            <SheetFooter className="mt-auto flex-shrink-0 p-6 pt-4">
               <SheetClose asChild>
                 <Button type="button" variant="outline">
                   Cancel
