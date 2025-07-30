@@ -16,11 +16,13 @@ type ReportData = {
   total: number;
 }[];
 
-type NewCardsReportTableProps = {
+type DailyReportTableProps = {
   data: ReportData;
+  title: string;
+  valueHeader: string;
 };
 
-export function NewCardsReportTable({ data }: NewCardsReportTableProps) {
+export function DailyReportTable({ data, title, valueHeader }: DailyReportTableProps) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -28,7 +30,7 @@ export function NewCardsReportTable({ data }: NewCardsReportTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>New Cards Data</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="rounded-lg border bg-card shadow-sm">
@@ -36,7 +38,7 @@ export function NewCardsReportTable({ data }: NewCardsReportTableProps) {
                 <TableHeader>
                     <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-right">New Cards Issued</TableHead>
+                    <TableHead className="text-right">{valueHeader}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

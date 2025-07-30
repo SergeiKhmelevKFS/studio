@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { Switch } from '@/components/ui/switch';
 import { ReportTable } from '@/components/report-table';
-import { NewCardsReportTable } from '@/components/new-cards-report-table';
+import { DailyReportTable } from '@/components/daily-report-table';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -182,6 +182,7 @@ export default function DashboardPage() {
     // Simulate API call
     setTimeout(() => {
       let dataSet: CardRecord[];
+      let dateField: keyof CardRecord = 'primaryCardIssueDate';
 
       if (reportType === 'card_statuses') {
         dataSet = records;
@@ -191,9 +192,15 @@ export default function DashboardPage() {
         const end = reportEndDate!;
         end.setHours(23,59,59,999);
         
+        if (reportType === 'new_cards') {
+            dateField = 'primaryCardIssueDate';
+        } else if (reportType === 'expired_cards') {
+            dateField = 'expires';
+        }
+
         dataSet = records.filter(record => {
-            const issueDate = record.primaryCardIssueDate;
-            return issueDate >= start && issueDate <= end;
+            const dateValue = record[dateField] as Date | undefined;
+            return dateValue && dateValue >= start && dateValue <= end;
         });
       }
 
@@ -218,18 +225,20 @@ export default function DashboardPage() {
           { name: 'Deactivated', total: deactivated, fill: 'hsl(var(--chart-gray))' },
           { name: 'Expired', total: expired, fill: 'hsl(var(--chart-red))' },
         ]);
-      } else if (reportType === 'new_cards') {
+      } else if (reportType === 'new_cards' || reportType === 'expired_cards') {
         const dailyCounts: { [key: string]: number } = {};
         dataSet.forEach(record => {
-          const date = record.primaryCardIssueDate.toLocaleDateString();
-          dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+          const dateValue = record[dateField] as Date | undefined;
+          if (dateValue) {
+            const date = dateValue.toLocaleDateString();
+            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+          }
         });
         const chartData = Object.entries(dailyCounts)
           .map(([date, total]) => ({ name: date, total }))
           .sort((a,b) => new Date(a.name).getTime() - new Date(b.name).getTime());
         setReportData(chartData);
       } else {
-        // Handle other report types here
         setReportData([]);
       }
       setIsGeneratingReport(false);
@@ -239,9 +248,15 @@ export default function DashboardPage() {
   const handleExport = async () => {
     if (!reportData) return;
     const XLSX = await import('xlsx');
-    const dataToExport = reportType === 'new_cards'
-        ? reportData.map(d => ({ Date: d.name, 'New Cards': d.total }))
-        : reportData.map(d => ({ Status: d.name, Total: d.total }));
+    
+    let dataToExport;
+    if (reportType === 'new_cards') {
+        dataToExport = reportData.map(d => ({ Date: d.name, 'New Cards': d.total }));
+    } else if (reportType === 'expired_cards') {
+        dataToExport = reportData.map(d => ({ Date: d.name, 'Expired Cards': d.total }));
+    } else {
+         dataToExport = reportData.map(d => ({ Status: d.name, Total: d.total }));
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -419,7 +434,7 @@ export default function DashboardPage() {
                                   />
                             </PieChart>
                         )
-                    ) : reportType === 'new_cards' ? (
+                    ) : reportType === 'new_cards' || reportType === 'expired_cards' ? (
                         <BarChart accessibilityLayer data={reportData}>
                             <CartesianGrid vertical={false} />
                             <XAxis
@@ -439,7 +454,7 @@ export default function DashboardPage() {
                             />
                             <Bar
                                 dataKey="total"
-                                fill="hsl(var(--chart-green))"
+                                fill={reportType === 'new_cards' ? "hsl(var(--chart-green))" : "hsl(var(--chart-red))"}
                                 radius={4}
                             />
                         </BarChart>
@@ -450,7 +465,9 @@ export default function DashboardPage() {
           {reportType === 'card_statuses' ? (
             <ReportTable data={reportData} />
           ) : reportType === 'new_cards' ? (
-            <NewCardsReportTable data={reportData} />
+            <DailyReportTable data={reportData} title="New Cards Data" valueHeader="New Cards Issued" />
+          ) : reportType === 'expired_cards' ? (
+            <DailyReportTable data={reportData} title="Expired Cards Data" valueHeader="Expired Cards" />
           ) : null }
           </>
         ) : (
