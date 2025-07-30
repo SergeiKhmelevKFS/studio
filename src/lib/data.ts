@@ -357,7 +357,7 @@ export const initialData: CardRecord[] = [
     primaryPartCardNumberBarcode: '',
     active: true,
   },
-  ...Array.from({ length: 100 }, (_, i) => {
+  ...Array.from({ length: 200 }, (_, i) => {
     const id = (14 + i).toString();
     const staffId = (100000 + i).toString();
     const name = `User ${i}`;
@@ -397,3 +397,52 @@ export const initialData: CardRecord[] = [
     };
   }),
 ];
+
+const julyRecords: CardRecord[] = [];
+const startDate = new Date('2024-07-01');
+let currentId = 214;
+for (let i = 0; i < 31; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+
+    for (let j = 0; j < 3; j++) {
+        const staffId = (300000 + currentId).toString();
+        const name = `User July ${i+1}-${j+1}`;
+        const company = `Company ${String.fromCharCode(65 + (currentId % 26))}`;
+        const country = currentId % 3 === 0 ? 'UK' : currentId % 3 === 1 ? 'USA' : 'Canada';
+        const city = country === 'UK' ? 'London' : country === 'USA' ? 'New York' : 'Toronto';
+        const active = Math.random() > 0.3;
+        const expired = new Date() > new Date(2025, currentDate.getMonth(), currentDate.getDate());
+
+        julyRecords.push({
+            id: currentId.toString(),
+            staffId,
+            companyName: company,
+            primaryCardholderName: name,
+            primaryCardNumberBarcode: `635666${staffId}`,
+            magStripe: `MS${staffId}`,
+            add1: `${currentId} Main St`,
+            add2: '',
+            add3: '',
+            add4: city,
+            add5: country,
+            postcode: `${20000 + currentId}`,
+            validFrom: currentDate,
+            expires: new Date(2025, currentDate.getMonth(), currentDate.getDate()),
+            letterFlag: Math.random() > 0.5,
+            overseas: country !== 'UK',
+            primaryCardIssueDate: currentDate,
+            fullCardNoInCirculation: `635666${staffId}`,
+            primaryCardType: 'Standard',
+            nextPrimaryCardToBeCharged: Math.random() > 0.5,
+            cardholderName2: '',
+            cardNumber2: '',
+            primaryReplacementCardIssueDate: undefined,
+            primaryPartCardNumberBarcode: '',
+            active: active && !expired,
+            reason: !active ? (expired ? 'Expired' : 'Deactivated') : undefined,
+        });
+        currentId++;
+    }
+}
+initialData.push(...julyRecords);
