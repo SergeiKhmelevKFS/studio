@@ -74,32 +74,44 @@ const detectCardMisuseFlow = ai.defineFlow(
 
     const cardTransactionMap = new Map<string, z.infer<typeof transactionSchema>[]>();
     transactions.forEach(tx => {
+        if (!tx.cardRecordId) return;
         if (!cardTransactionMap.has(tx.cardRecordId)) {
             cardTransactionMap.set(tx.cardRecordId, []);
         }
         cardTransactionMap.get(tx.cardRecordId)!.push(tx);
     });
 
-    for (const card of cards) {
-        if (!card.id) continue;
-        const cardTransactions = cardTransactionMap.get(card.id) || [];
-        if (cardTransactions.length === 0) continue;
+    const analysisPromises = cards
+      .map(card => {
+          if (!card.id) return null;
+          const cardTransactions = cardTransactionMap.get(card.id) || [];
+          if (cardTransactions.length === 0) return null;
 
-        const cardWithTransactions = {
-            ...card,
-            transactions: cardTransactions,
-        };
+          const cardWithTransactions = {
+              ...card,
+              transactions: cardTransactions,
+          };
 
-        const { output } = await misuseDetectionPrompt({ card: cardWithTransactions });
-        
-        if (output?.isSuspicious && output.reasons.length > 0) {
-            flaggedCards.push({
-                ...card,
-                transactions: cardTransactions,
-                reasons: output.reasons,
-            });
+          return misuseDetectionPrompt({ card: cardWithTransactions }).then(({ output }) => {
+              if (output?.isSuspicious && output.reasons.length > 0) {
+                  return {
+                      ...card,
+                      transactions: cardTransactions,
+                      reasons: output.reasons,
+                  };
+              }
+              return null;
+          });
+      })
+      .filter(p => p !== null);
+
+    const results = await Promise.all(analysisPromises);
+    
+    results.forEach(result => {
+        if (result) {
+            flaggedCards.push(result);
         }
-    }
+    });
 
     return { flaggedCards };
   }
