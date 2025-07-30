@@ -3,7 +3,7 @@ import type { CardRecord } from './types';
 export const initialData: CardRecord[] = [
   {
     id: '1',
-    staffId: 'S-12345',
+    staffId: '123456',
     companyName: 'Tech Innovators Inc.',
     primaryCardholderName: 'Alice Johnson',
     primaryCardNumberBarcode: '1234567890123456',
@@ -31,7 +31,7 @@ export const initialData: CardRecord[] = [
   },
   {
     id: '2',
-    staffId: 'S-67890',
+    staffId: '678901',
     companyName: 'Global Solutions Ltd.',
     primaryCardholderName: 'Bob Williams',
     primaryCardNumberBarcode: '9876543210987654',
