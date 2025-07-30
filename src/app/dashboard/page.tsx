@@ -8,6 +8,7 @@ import { initialData } from '@/lib/data';
 import { Header } from '@/components/header';
 import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
+import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [records, setRecords] = useState<CardRecord[]>(initialData);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<CardRecord | null>(null);
   const [sortColumn, setSortColumn] = useState<SortableColumn>('staffId');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -117,11 +119,15 @@ export default function DashboardPage() {
     sessionStorage.removeItem('isLoggedIn');
     router.push('/');
   };
+  
+  const handleProfileClick = () => {
+    setIsProfileSheetOpen(true);
+  };
 
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <Header onAdd={handleAdd} onLogout={handleLogout}/>
+      <Header onAdd={handleAdd} onLogout={handleLogout} onProfileClick={handleProfileClick} />
       <main className="p-4 md:p-8">
         <div className="mb-4 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -159,6 +165,10 @@ export default function DashboardPage() {
         record={editingRecord}
         onSave={handleSave}
       />
+      <ProfileSheet
+        open={isProfileSheetOpen}
+        onOpenChange={setIsProfileSheetOpen}
+       />
     </div>
   );
 }

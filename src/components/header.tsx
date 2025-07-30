@@ -1,11 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { LogOut, PlusCircle } from 'lucide-react';
+import { LogOut, PlusCircle, User } from 'lucide-react';
 
 type HeaderProps = {
   onAdd: () => void;
   onLogout: () => void;
+  onProfileClick: () => void;
 };
 
 const Logo = () => (
@@ -31,7 +32,7 @@ const Logo = () => (
   </svg>
 );
 
-export function Header({ onAdd, onLogout }: HeaderProps) {
+export function Header({ onAdd, onLogout, onProfileClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
       <div className="flex items-center gap-3">
@@ -44,6 +45,10 @@ export function Header({ onAdd, onLogout }: HeaderProps) {
         <Button onClick={onAdd} className="gap-2">
           <PlusCircle className="h-5 w-5" />
           <span className="hidden sm:inline">New Card</span>
+        </Button>
+        <Button onClick={onProfileClick} variant="outline" size="icon">
+            <User className="h-5 w-5" />
+            <span className="sr-only">Profile</span>
         </Button>
         <Button onClick={onLogout} variant="outline" className="gap-2">
          <LogOut className="h-5 w-5" />
