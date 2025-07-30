@@ -39,6 +39,12 @@ const Logo = () => (
     </svg>
   );
 
+  const users: Record<string, { password: string, role: string }> = {
+    admin: { password: '123', role: 'Administrator' },
+    fraud_analyst: { password: '123', role: 'Fraud Analyst' },
+    card_manager: { password: '123', role: 'Digital Discount Card Manager' },
+  };
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
@@ -46,8 +52,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   const handleLogin = () => {
-    if (username === 'admin' && password === '123') {
+    const user = users[username];
+    if (user && user.password === password) {
       sessionStorage.setItem('isLoggedIn', 'true');
+      sessionStorage.setItem('user', JSON.stringify({ username, role: user.role }));
       router.push('/dashboard');
     } else {
       setError('Invalid username or password.');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -20,12 +20,16 @@ import {
   } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from './ui/separator';
 
 type ProfileSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+type User = {
+    username: string;
+    role: string;
+}
 
 export function ProfileSheet({
   open,
@@ -35,6 +39,16 @@ export function ProfileSheet({
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (open) {
+        const storedUser = sessionStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }
+  }, [open]);
 
   const handlePasswordChange = () => {
     // For prototype only. In a real app, you would handle this securely.
@@ -58,11 +72,11 @@ export function ProfileSheet({
                 <CardContent className="space-y-4">
                     <div>
                         <Label>Username</Label>
-                        <p className="text-sm font-medium text-muted-foreground">admin</p>
+                        <p className="text-sm font-medium text-muted-foreground">{user?.username}</p>
                     </div>
                     <div>
                         <Label>Assigned Roles</Label>
-                        <p className="text-sm font-medium text-muted-foreground">Administrator</p>
+                        <p className="text-sm font-medium text-muted-foreground">{user?.role}</p>
                     </div>
                 </CardContent>
             </Card>
