@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { Switch } from '@/components/ui/switch';
@@ -32,6 +32,7 @@ import { TransactionSheet } from '@/components/transaction-sheet';
 import { MisuseReportTable, type MisuseReportRecord } from '@/components/misuse-report-table';
 import { detectCardMisuseAction } from '@/lib/actions';
 import { EditMisuseRulesSheet, defaultRules } from '@/components/edit-misuse-rules-sheet';
+import { format, subDays } from 'date-fns';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
 
@@ -49,6 +50,22 @@ type ReportData = {
 }[];
 
 type ReportSortColumn = 'name' | 'total';
+
+const misuseHistoryData = Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(new Date(), i * 5);
+    return {
+      date: format(date, 'MMM d'),
+      detected: Math.floor(Math.random() * (20 - 5 + 1)) + 5,
+    };
+  }).reverse();
+
+const misuseChartConfig = {
+    detected: {
+      label: 'Detected Misuse',
+      color: 'hsl(var(--primary))',
+    },
+} satisfies ChartConfig;
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -466,6 +483,46 @@ export default function DashboardPage() {
 
   const cardsAndUsersView = (
     <>
+      {isReadOnly && (
+         <Card className="mb-8">
+            <CardHeader>
+                <CardTitle>Misuse Detection Trends</CardTitle>
+                <CardDescription>Detected potential misuse cases over the last 30 days.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={misuseChartConfig} className="h-64 w-full">
+                    <AreaChart
+                        data={misuseHistoryData}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                        <defs>
+                            <linearGradient id="colorDetected" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--color-detected)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-detected)" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="date"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                        />
+                        <YAxis />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                        <Area
+                            dataKey="detected"
+                            type="monotone"
+                            fill="url(#colorDetected)"
+                            stroke="var(--color-detected)"
+                            stackId="a"
+                        />
+                    </AreaChart>
+                </ChartContainer>
+            </CardContent>
+         </Card>
+      )}
+
       <div className="flex items-center justify-end mt-4 mb-4 space-x-2">
         {isReadOnly && (
           <>
@@ -857,7 +914,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
