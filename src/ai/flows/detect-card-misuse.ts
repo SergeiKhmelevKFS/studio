@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for detecting potential discount card misuse.
@@ -11,6 +12,13 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { cardSchema, transactionSchema } from '@/lib/types';
 
+const MisuseRuleSchema = z.object({
+  id: z.string(),
+  field: z.enum(['payer_mismatch', 'transaction_amount', 'transaction_count', 'stores_distance']),
+  operator: z.enum(['<', '<=', '>', '>=', '=']),
+  value: z.string(),
+});
+
 // Schemas for individual records are imported from lib/types
 const CardWithTransactionsSchema = cardSchema.extend({
     transactions: z.array(transactionSchema),
@@ -20,7 +28,7 @@ const CardWithTransactionsSchema = cardSchema.extend({
 const DetectCardMisuseInputSchema = z.object({
   cards: z.array(cardSchema),
   transactions: z.array(transactionSchema),
-  rules: z.string().optional(),
+  rules: z.array(MisuseRuleSchema).optional(),
 });
 export type DetectCardMisuseInput = z.infer<typeof DetectCardMisuseInputSchema>;
 
@@ -35,13 +43,13 @@ export async function detectCardMisuse(input: DetectCardMisuseInput): Promise<De
   return detectCardMisuseFlow(input);
 }
 
-const defaultRules = `1.  **Payer Mismatch:** A high percentage of transactions (e.g., >50%) made by someone other than the primary or secondary cardholder.
+const defaultRulesText = `1.  **Payer Mismatch:** A high percentage of transactions (e.g., >50%) made by someone other than the primary or secondary cardholder.
 2.  **High Frequency:** Too many transactions in a short period (e.g., more than 3 transactions in 24 hours).
 3.  **Anomalous Geographic Velocity:** Transactions in geographically distant locations in an impossible timeframe (e.g., London and New York on the same day).`;
 
 const misuseDetectionPrompt = ai.definePrompt({
   name: 'misuseDetectionPrompt',
-  input: { schema: z.object({ card: CardWithTransactionsSchema, rules: z.string() }) },
+  input: { schema: z.object({ card: CardWithTransactionsSchema, rulesText: z.string() }) },
   output: { schema: z.object({ isSuspicious: z.boolean(), reasons: z.array(z.string()) }) },
   prompt: `You are a fraud detection expert for a discount card program.
 Analyze the following card and its associated transactions to determine if there is potential misuse.
@@ -59,7 +67,7 @@ Analyze the following card and its associated transactions to determine if there
 {{/each}}
 
 **Business Rules for Misuse:**
-{{{rules}}}
+{{{rulesText}}}
 
 Based on these rules, determine if the card activity is suspicious and list the specific rules that were violated.
 `,
@@ -72,7 +80,28 @@ const detectCardMisuseFlow = ai.defineFlow(
     outputSchema: DetectCardMisuseOutputSchema,
   },
   async ({ cards, transactions, rules }) => {
-    const effectiveRules = rules || defaultRules;
+    let rulesText = defaultRulesText;
+    if (rules && rules.length > 0) {
+      rulesText = rules.map((rule, i) => {
+        let description = '';
+        switch(rule.field) {
+            case 'payer_mismatch':
+                description = `Payer Mismatch > ${rule.value}%`;
+                break;
+            case 'transaction_amount':
+                description = `Transaction Amount ${rule.operator} ${rule.value}`;
+                break;
+            case 'transaction_count':
+                description = `Transaction Count in 24h ${rule.operator} ${rule.value}`;
+                break;
+            case 'stores_distance':
+                 description = `Impossible travel between stores > ${rule.value}km`;
+                 break;
+        }
+        return `${i + 1}. **${description}**`;
+      }).join('\n');
+    }
+
     const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
 
     const cardTransactionMap = new Map<string, z.infer<typeof transactionSchema>[]>();
@@ -95,7 +124,7 @@ const detectCardMisuseFlow = ai.defineFlow(
               transactions: cardTransactions,
           };
 
-          return misuseDetectionPrompt({ card: cardWithTransactions, rules: effectiveRules }).then(({ output }) => {
+          return misuseDetectionPrompt({ card: cardWithTransactions, rulesText }).then(({ output }) => {
               if (output?.isSuspicious && output.reasons.length > 0) {
                   return {
                       ...card,

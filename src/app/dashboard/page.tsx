@@ -31,7 +31,7 @@ import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
 import { TransactionSheet } from '@/components/transaction-sheet';
 import { MisuseReportTable, type MisuseReportRecord } from '@/components/misuse-report-table';
 import { detectCardMisuseAction } from '@/lib/actions';
-import { EditMisuseRulesSheet, defaultRules } from '@/components/edit-misuse-rules-sheet';
+import { EditMisuseRulesSheet, type MisuseRule } from '@/components/edit-misuse-rules-sheet';
 import { format, subDays } from 'date-fns';
 
 type SortableColumn = keyof Pick<CardRecord, 'staffId' | 'companyName' | 'primaryCardholderName' | 'primaryCardNumberBarcode' | 'expires' | 'active'>;
@@ -65,6 +65,12 @@ const misuseChartConfig = {
       color: 'hsl(var(--primary))',
     },
 } satisfies ChartConfig;
+
+const defaultRules: MisuseRule[] = [
+    { id: '1', field: 'payer_mismatch', operator: '>', value: '50' },
+    { id: '2', field: 'transaction_count', operator: '>', value: '3' },
+    { id: '3', field: 'stores_distance', operator: '>', value: '100' },
+];
 
 
 export default function DashboardPage() {
@@ -108,7 +114,7 @@ export default function DashboardPage() {
   const [hasSearchedMisuse, setHasSearchedMisuse] = useState(false);
   
   const [isEditRulesSheetOpen, setIsEditRulesSheetOpen] = useState(false);
-  const [misuseRules, setMisuseRules] = useState(defaultRules);
+  const [misuseRules, setMisuseRules] = useState<MisuseRule[]>(defaultRules);
 
   const isAdmin = user?.role === 'Administrator';
   const isReadOnly = user?.role === 'Fraud Analyst';
@@ -136,7 +142,16 @@ export default function DashboardPage() {
     
     const storedRules = localStorage.getItem('misuseRules');
     if (storedRules) {
-        setMisuseRules(storedRules);
+        try {
+            const parsedRules = JSON.parse(storedRules);
+            if (Array.isArray(parsedRules)) {
+                setMisuseRules(parsedRules);
+            }
+        } catch (e) {
+            // If parsing fails, it might be the old string format.
+            // Ignore and use default structured rules.
+            localStorage.setItem('misuseRules', JSON.stringify(defaultRules));
+        }
     }
   }, [router]);
 
@@ -475,9 +490,9 @@ export default function DashboardPage() {
     setIsSearchingMisuse(false);
   };
 
-  const handleSaveRules = (newRules: string) => {
+  const handleSaveRules = (newRules: MisuseRule[]) => {
     setMisuseRules(newRules);
-    localStorage.setItem('misuseRules', newRules);
+    localStorage.setItem('misuseRules', JSON.stringify(newRules));
     setIsEditRulesSheetOpen(false);
   };
 

@@ -36,6 +36,7 @@ export async function detectCardMisuseAction(
       return result;
     } catch (error) {
       console.error('Error detecting card misuse:', error);
+      // It's better to return an empty list of flagged cards than to crash
       return {
         flaggedCards: [],
       };
