@@ -42,10 +42,6 @@ export async function detectCardMisuse(input: DetectCardMisuseInput): Promise<De
   return detectCardMisuseFlow(input);
 }
 
-const defaultRulesText = `1.  **Payer Mismatch:** A high percentage of transactions (e.g., >50%) made by someone other than the primary or secondary cardholder.
-2.  **High Frequency:** Too many transactions in a short period (e.g., more than 3 transactions in 24 hours).
-3.  **Anomalous Geographic Velocity:** Transactions in geographically distant locations in an impossible timeframe (e.g., London and New York on the same day).`;
-
 const misuseDetectionPrompt = ai.definePrompt({
   name: 'misuseDetectionPrompt',
   input: { schema: z.object({ card: CardWithTransactionsSchema, rulesText: z.string() }) },
@@ -69,6 +65,7 @@ Analyze the following card and its associated transactions to determine if there
 {{{rulesText}}}
 
 Based *only* on the rules provided, determine if the card activity is suspicious.
+If no rules are provided, the activity is not suspicious.
 If it is suspicious, set isSuspicious to true and list the specific business rule descriptions that were violated in the reasons array.
 If the activity is not suspicious, set isSuspicious to false.
 `,
@@ -81,7 +78,7 @@ const detectCardMisuseFlow = ai.defineFlow(
     outputSchema: DetectCardMisuseOutputSchema,
   },
   async ({ cards, transactions, rules }) => {
-    let rulesText = defaultRulesText;
+    let rulesText = '';
     if (rules && rules.length > 0) {
       rulesText = rules.map((rule, i) => {
         let description = '';
@@ -115,24 +112,24 @@ const detectCardMisuseFlow = ai.defineFlow(
     const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
 
     for (const card of cards) {
-        if (!card.id) continue;
-        const cardTransactions = cardTransactionMap.get(card.id) || [];
-        if (cardTransactions.length === 0) continue;
+      if (!card.id) continue;
+      const cardTransactions = cardTransactionMap.get(card.id) || [];
+      if (cardTransactions.length === 0) continue;
 
-        const cardWithTransactions = {
-            ...card,
-            transactions: cardTransactions,
-        };
+      const cardWithTransactions = {
+        ...card,
+        transactions: cardTransactions,
+      };
 
-        const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
+      const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
 
-        if (output?.isSuspicious && output.reasons.length > 0) {
-            flaggedCards.push({
-                ...card,
-                transactions: cardTransactions,
-                reasons: output.reasons,
-            });
-        }
+      if (output?.isSuspicious && output.reasons.length > 0) {
+        flaggedCards.push({
+          ...card,
+          transactions: cardTransactions,
+          reasons: output.reasons,
+        });
+      }
     }
 
     return { flaggedCards };
