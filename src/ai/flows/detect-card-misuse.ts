@@ -115,34 +115,34 @@ const detectCardMisuseFlow = ai.defineFlow(
         cardTransactionMap.get(tx.cardRecordId)!.push(tx);
     });
 
-    const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
-
-    for (const card of cards) {
-      if (!card.id) continue;
-      const cardTransactions = cardTransactionMap.get(card.id) || [];
-      if (cardTransactions.length === 0) continue;
-
-      const cardWithTransactions = {
-        ...card,
-        transactions: cardTransactions,
-      };
-
-      const { output } = await misuseDetectionPrompt({ 
-          card: cardWithTransactions, 
-          rules,
-      });
-
-      if (output?.isSuspicious && output.reasons.length > 0) {
-        // Use the rule descriptions for the reasons to keep them user-friendly
-        const formattedReasons = output.reasons;
-        flaggedCards.push({
+    const analysisPromises = cards.map(async (card) => {
+        if (!card.id) return null;
+        const cardTransactions = cardTransactionMap.get(card.id) || [];
+        if (cardTransactions.length === 0) return null;
+  
+        const cardWithTransactions = {
           ...card,
           transactions: cardTransactions,
-          reasons: formattedReasons,
+        };
+  
+        const { output } = await misuseDetectionPrompt({ 
+            card: cardWithTransactions, 
+            rules,
         });
-      }
-    }
+  
+        if (output?.isSuspicious && output.reasons.length > 0) {
+          return {
+            ...card,
+            transactions: cardTransactions,
+            reasons: output.reasons,
+          };
+        }
+        return null;
+    });
 
+    const results = await Promise.all(analysisPromises);
+    const flaggedCards = results.filter(Boolean) as z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'];
+    
     return { flaggedCards };
   }
 );
