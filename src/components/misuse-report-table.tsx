@@ -33,7 +33,7 @@ export function MisuseReportTable({ records, onViewTransactions }: MisuseReportT
                 Potential Card Misuse Report
             </CardTitle>
             <CardDescription>
-                The following cards have been flagged for potential misuse based on transaction analysis.
+                The following cards have been flagged for potential misuse based on transaction analysis. Review each case carefully.
             </CardDescription>
         </CardHeader>
         <CardContent>
@@ -59,11 +59,11 @@ export function MisuseReportTable({ records, onViewTransactions }: MisuseReportT
                             <TableCell>{record.primaryCardholderName}</TableCell>
                             <TableCell className="font-mono">{record.primaryCardNumberBarcode}</TableCell>
                             <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                    {record.reasons.map(reason => (
-                                        <Badge key={reason} variant="destructive">{reason}</Badge>
+                                <ul className="list-disc pl-5 space-y-1">
+                                    {record.reasons.map((reason, index) => (
+                                       <li key={index} className="text-sm">{reason}</li>
                                     ))}
-                                </div>
+                                </ul>
                             </TableCell>
                             <TableCell>
                                 <Button

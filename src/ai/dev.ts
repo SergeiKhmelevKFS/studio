@@ -4,3 +4,4 @@ config();
 
 import '@/ai/flows/validate-address.ts';
 import '@/ai/flows/detect-card-misuse.ts';
+import '@/ai/tools/location.ts';

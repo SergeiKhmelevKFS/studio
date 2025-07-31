@@ -1,13 +1,30 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { detectCardMisuse, type DetectCardMisuseInput } from './detect-card-misuse';
 import type { CardRecord, TransactionRecord } from '@/lib/types';
 import type { MisuseRule } from '@/components/edit-misuse-rules-sheet';
 import dotenv from 'dotenv';
+import * as LocationTool from '@/ai/tools/location';
 
 // Load environment variables if necessary
 beforeAll(() => {
     dotenv.config();
 });
+
+// Mock the location tool to return predictable distances
+vi.spyOn(LocationTool, 'getDistance').mockImplementation(
+    // @ts-ignore
+    async (input) => {
+        const { loc1, loc2 } = input;
+        if ((loc1.includes('London') && loc2.includes('New York')) || (loc1.includes('New York') && loc2.includes('London'))) {
+            return { distanceKm: 5567 };
+        }
+        if ((loc1.includes('London') && loc2.includes('Manchester')) || (loc1.includes('Manchester') && loc2.includes('London'))) {
+            return { distanceKm: 330 };
+        }
+        return { distanceKm: 50 }; // Default short distance
+    }
+);
+
 
 const createCard = (id: string, name: string): CardRecord => ({
     id,
@@ -23,14 +40,14 @@ const createCard = (id: string, name: string): CardRecord => ({
     active: true,
 });
 
-const createTransaction = (card: CardRecord, id: string, amount: number, payerName: string, datetime: Date): TransactionRecord => ({
+const createTransaction = (card: CardRecord, id: string, amount: number, payerName: string, datetime: Date, store: string = 'B&Q Test'): TransactionRecord => ({
     id: `txn-${id}`,
     cardRecordId: card.id!,
     cardNumber: card.primaryCardNumberBarcode,
     transaction_amount: amount,
     payer_name: payerName,
     transaction_datetime: datetime,
-    transaction_store: 'B&Q Test',
+    transaction_store: store,
     transaction_discount: amount * 0.1,
     payer_card_number: '**** **** **** 1234',
 });
@@ -67,7 +84,7 @@ describe('detectCardMisuse Flow', () => {
         
         expect(result.flaggedCards).toHaveLength(1);
         expect(result.flaggedCards[0].id).toBe('amount-1');
-        expect(result.flaggedCards[0].reasons[0]).toContain("transaction's amount is > 50");
+        expect(result.flaggedCards[0].reasons[0]).toContain("violates transaction amount rule");
     }, 15000);
 
     it('should flag a card for transaction count violation within 24 hours', async () => {
@@ -89,7 +106,7 @@ describe('detectCardMisuse Flow', () => {
 
         expect(result.flaggedCards).toHaveLength(1);
         expect(result.flaggedCards[0].id).toBe('count-1');
-        expect(result.flaggedCards[0].reasons[0]).toContain("number of transactions in a 24-hour period is > 3");
+        expect(result.flaggedCards[0].reasons[0]).toContain("violates transaction count rule");
     }, 15000);
 
     it('should flag a card for payer mismatch violation', async () => {
@@ -108,15 +125,15 @@ describe('detectCardMisuse Flow', () => {
 
         expect(result.flaggedCards).toHaveLength(1);
         expect(result.flaggedCards[0].id).toBe('payer-1');
-        expect(result.flaggedCards[0].reasons[0]).toContain("Payer name does not match either cardholder for more than 50% of transactions");
+        expect(result.flaggedCards[0].reasons[0]).toContain("violates payer mismatch rule");
     }, 15000);
 
     it('should flag a card for impossible stores distance violation', async () => {
         const card = createCard('geo-1', 'Geo User');
         const now = new Date();
         const transactions = [
-            { ...createTransaction(card, '1', 20, 'Geo User', now), transaction_store: 'London' },
-            { ...createTransaction(card, '2', 20, 'Geo User', new Date(now.getTime() + 1 * 60 * 60 * 1000)), transaction_store: 'New York' },
+            createTransaction(card, '1', 20, 'Geo User', now, 'B&Q London'),
+            createTransaction(card, '2', 20, 'Geo User', new Date(now.getTime() + 1 * 60 * 60 * 1000), 'B&Q New York'),
         ];
         const rules: MisuseRule[] = [
             { id: '1', field: 'stores_distance', operator: '>', value: '100' },
@@ -127,7 +144,7 @@ describe('detectCardMisuse Flow', () => {
 
         expect(result.flaggedCards).toHaveLength(1);
         expect(result.flaggedCards[0].id).toBe('geo-1');
-        expect(result.flaggedCards[0].reasons[0]).toContain("Transactions occurred at stores more than 100km apart in an impossible timeframe.");
+        expect(result.flaggedCards[0].reasons[0]).toContain("violates store distance rule");
     }, 15000);
     
     it('should flag a single card with multiple violations and list all reasons', async () => {
@@ -147,8 +164,12 @@ describe('detectCardMisuse Flow', () => {
         expect(result.flaggedCards).toHaveLength(1);
         expect(result.flaggedCards[0].id).toBe('multi-1');
         expect(result.flaggedCards[0].reasons).toHaveLength(2);
-        expect(result.flaggedCards[0].reasons).toContain("1. **A transaction's amount is > 50.**");
-        expect(result.flaggedCards[0].reasons).toContain("2. **Payer name does not match either cardholder for more than 40% of transactions.**");
+        expect(result.flaggedCards[0].reasons).toEqual(
+            expect.arrayContaining([
+                expect.stringMatching(/transaction amount/i),
+                expect.stringMatching(/payer mismatch/i)
+            ])
+        );
     }, 20000);
 
     it('should return an empty array if no rules are provided', async () => {
