@@ -104,8 +104,6 @@ const detectCardMisuseFlow = ai.defineFlow(
       }).join('\n');
     }
 
-    const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
-
     const cardTransactionMap = new Map<string, z.infer<typeof transactionSchema>[]>();
     transactions.forEach(tx => {
         if (!tx.cardRecordId) return;
@@ -126,26 +124,23 @@ const detectCardMisuseFlow = ai.defineFlow(
               transactions: cardTransactions,
           };
 
-          return misuseDetectionPrompt({ card: cardWithTransactions, rulesText }).then(({ output }) => {
-              if (output?.isSuspicious && output.reasons.length > 0) {
-                  return {
-                      ...card,
-                      transactions: cardTransactions,
-                      reasons: output.reasons,
-                  };
-              }
-              return null;
-          });
+          return async () => {
+            const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
+            if (output?.isSuspicious && output.reasons.length > 0) {
+                return {
+                    ...card,
+                    transactions: cardTransactions,
+                    reasons: output.reasons,
+                };
+            }
+            return null;
+          };
       })
-      .filter(p => p !== null) as Promise<z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'][number] | null>[];
+      .filter(p => p !== null) as (() => Promise<z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'][number] | null>)[];
 
-    const results = await Promise.all(analysisPromises);
+    const results = await Promise.all(analysisPromises.map(p => p()));
     
-    results.forEach(result => {
-        if (result) {
-            flaggedCards.push(result);
-        }
-    });
+    const flaggedCards = results.filter(result => result !== null) as z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'];
 
     return { flaggedCards };
   }
