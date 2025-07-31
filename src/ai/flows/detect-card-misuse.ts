@@ -44,36 +44,30 @@ export async function detectCardMisuse(input: DetectCardMisuseInput): Promise<De
 
 const misuseDetectionPrompt = ai.definePrompt({
   name: 'misuseDetectionPrompt',
-  input: { schema: z.object({ card: CardWithTransactionsSchema, rulesText: z.string() }) },
+  input: { schema: z.object({ card: CardWithTransactionsSchema, rules: z.array(MisuseRuleSchema), rulesText: z.string() }) },
   output: { schema: z.object({ isSuspicious: z.boolean(), reasons: z.array(z.string()) }) },
-  prompt: `You are a fraud detection expert for a discount card program.
-Your task is to analyze the cardholder and their transactions based on a set of business rules.
+  prompt: `You are a fraud detection expert for a discount card program. Your task is to analyze a single cardholder and their transactions based on a set of business rules.
 
-**Cardholder:**
-- **Primary:** {{{card.primaryCardholderName}}}
-- **Secondary:** {{{card.cardholderName2}}}
-- **Card Number:** {{{card.primaryCardNumberBarcode}}}
+**Cardholder Data:**
+\`\`\`json
+{{{json card}}}
+\`\`\`
 
 **Business Rules for Misuse:**
 {{{rulesText}}}
 
 **Instructions:**
-1.  Carefully review each transaction listed below.
-2.  For each transaction, check if it violates any of the business rules.
-3.  Rules related to transaction counts or payer mismatches should be evaluated against the entire set of transactions.
-4.  If you find any violations, set 'isSuspicious' to true.
-5.  In the 'reasons' array, list the specific business rule descriptions that were violated.
-6.  If no rules are violated after checking all transactions, set 'isSuspicious' to false.
-7.  Analyze based *only* on the provided transactions and rules. If no rules are provided, nothing is suspicious.
-
-**Transactions to Analyze:**
-{{#each card.transactions}}
-- **Transaction Date:** {{this.transaction_datetime}}
-- **Store:** {{this.transaction_store}}
-- **Amount:** {{this.transaction_amount}}
-- **Payer:** {{this.payer_name}}
----
-{{/each}}
+1.  Carefully review each transaction for the cardholder based on the JSON data provided above.
+2.  Evaluate the transactions against **each business rule** provided.
+3.  You must check every rule. A card is suspicious if it violates **any** of the rules.
+4.  **Transaction Amount Rule:** For each individual transaction, check if its 'transaction_amount' violates the rule. For example, if the rule is "Transaction Amount > 50", you must check if any single transaction has an amount greater than 50.
+5.  **Payer Mismatch Rule:** Check if the 'payer_name' in transactions does not match 'primaryCardholderName' or 'cardholderName2'. If the rule is about a percentage, calculate the percentage of mismatched transactions out of the total number of transactions and check if it violates the rule.
+6.  **Transaction Count Rule:** Count the number of transactions that occur within any 24-hour window. Check if this count violates the rule.
+7.  **Stores Distance Rule:** Analyze 'transaction_store' and 'transaction_datetime' to check for transactions occurring at distant locations in an impossibly short timeframe. For example, a transaction in London and another in New York an hour later is impossible.
+8.  If any rule is violated, set 'isSuspicious' to true and add the description of the violated rule to the 'reasons' array.
+9.  If multiple rules are violated, add all corresponding reasons.
+10. If no rules are violated after checking all transactions, set 'isSuspicious' to false.
+11. Analyze based *only* on the provided cardholder JSON data and the business rules.
 `,
 });
 
@@ -84,9 +78,12 @@ const detectCardMisuseFlow = ai.defineFlow(
     outputSchema: DetectCardMisuseOutputSchema,
   },
   async ({ cards, transactions, rules }) => {
-    let rulesText = 'No rules provided.';
-    if (rules && rules.length > 0) {
-      rulesText = rules.map((rule, i) => {
+    
+    if (!rules || rules.length === 0) {
+      return { flaggedCards: [] };
+    }
+    
+    let rulesText = rules.map((rule, i) => {
         let description = '';
         switch(rule.field) {
             case 'payer_mismatch':
@@ -104,7 +101,7 @@ const detectCardMisuseFlow = ai.defineFlow(
         }
         return `${i + 1}. **${description}**`;
       }).join('\n');
-    }
+
 
     const cardTransactionMap = new Map<string, z.infer<typeof transactionSchema>[]>();
     transactions.forEach(tx => {
@@ -127,7 +124,11 @@ const detectCardMisuseFlow = ai.defineFlow(
         transactions: cardTransactions,
       };
 
-      const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
+      const { output } = await misuseDetectionPrompt({ 
+          card: cardWithTransactions, 
+          rules,
+          rulesText,
+      });
 
       if (output?.isSuspicious && output.reasons.length > 0) {
         flaggedCards.push({
