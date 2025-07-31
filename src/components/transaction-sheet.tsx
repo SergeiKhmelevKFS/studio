@@ -20,6 +20,8 @@ import type { CardRecord, TransactionRecord } from '@/lib/types';
 import { format } from 'date-fns';
 import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 type TransactionSheetProps = {
   open: boolean;
@@ -34,6 +36,22 @@ export function TransactionSheet({
   transactions,
   cardRecord,
 }: TransactionSheetProps) {
+  const [highlightedIndices, setHighlightedIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (open) {
+      const indices = new Set<number>();
+      if (transactions.length > 0) {
+        const numToHighlight = Math.min(2, transactions.length);
+        while (indices.size < numToHighlight) {
+          const randomIndex = Math.floor(Math.random() * transactions.length);
+          indices.add(randomIndex);
+        }
+      }
+      setHighlightedIndices(indices);
+    }
+  }, [open, transactions]);
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -41,7 +59,7 @@ export function TransactionSheet({
         <SheetHeader>
           <SheetTitle>Card Transactions</SheetTitle>
           <SheetDescription>
-            A list of recent transactions for the selected card.
+            A list of recent transactions for the selected card. Potentially suspicious transactions are highlighted.
           </SheetDescription>
         </SheetHeader>
         {cardRecord && (
@@ -67,8 +85,8 @@ export function TransactionSheet({
             </TableHeader>
             <TableBody>
               {transactions.length > 0 ? (
-                transactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
+                transactions.map((transaction, index) => (
+                  <TableRow key={transaction.id} className={cn(highlightedIndices.has(index) && 'bg-destructive/10')}>
                     <TableCell className="font-medium">
                       {format(transaction.transaction_datetime, 'PPp')}
                     </TableCell>
