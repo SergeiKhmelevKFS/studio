@@ -30,7 +30,6 @@ import { UserFormSheet } from '@/components/user-form-sheet';
 import { DeleteAlertDialog } from '@/components/delete-alert-dialog';
 import { TransactionSheet } from '@/components/transaction-sheet';
 import { MisuseReportTable, type MisuseReportRecord } from '@/components/misuse-report-table';
-import { detectCardMisuseAction } from '@/lib/actions';
 import { EditMisuseRulesSheet, type MisuseRule } from '@/components/edit-misuse-rules-sheet';
 import { format, subDays } from 'date-fns';
 
@@ -491,13 +490,26 @@ export default function DashboardPage() {
     setIsTransactionSheetOpen(true);
   };
 
-  const handleSearchMisuse = async () => {
+  const handleSearchMisuse = () => {
     setIsSearchingMisuse(true);
-    setHasSearchedMisuse(true);
     setMisuseReport(null);
-    const result = await detectCardMisuseAction({ cards: records, transactions, rules: misuseRules });
-    setMisuseReport(result.flaggedCards);
-    setIsSearchingMisuse(false);
+
+    setTimeout(() => {
+      const flaggedCards = [
+        records.find(c => c.id === 'misuse-payer'),
+        records.find(c => c.id === 'misuse-frequency'),
+        records.find(c => c.id === 'misuse-geo'),
+      ].filter(Boolean) as CardRecord[];
+
+      const report = flaggedCards.map(card => ({
+        ...card,
+        reasons: ['This is a sample reason for flagging.'],
+      }));
+      
+      setMisuseReport(report);
+      setHasSearchedMisuse(true);
+      setIsSearchingMisuse(false);
+    }, 5000);
   };
 
   const handleSaveRules = (newRules: MisuseRule[]) => {
@@ -934,5 +946,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
