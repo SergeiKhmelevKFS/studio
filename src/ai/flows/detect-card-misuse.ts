@@ -52,7 +52,7 @@ const misuseDetectionPrompt = ai.definePrompt({
   input: { schema: z.object({ card: CardWithTransactionsSchema, rulesText: z.string() }) },
   output: { schema: z.object({ isSuspicious: z.boolean(), reasons: z.array(z.string()) }) },
   prompt: `You are a fraud detection expert for a discount card program.
-Analyze the following card and its associated transactions to determine if there is potential misuse.
+Analyze the following card and its associated transactions to determine if there is potential misuse based on the business rules provided.
 
 - **Cardholder:** {{{card.primaryCardholderName}}}
 - **Secondary Cardholder:** {{{card.cardholderName2}}}
@@ -69,7 +69,9 @@ Analyze the following card and its associated transactions to determine if there
 **Business Rules for Misuse:**
 {{{rulesText}}}
 
-Based on these rules, determine if the card activity is suspicious and list the specific rules that were violated.
+Based *only* on the rules provided, determine if the card activity is suspicious.
+If it is suspicious, set isSuspicious to true and list the specific business rule descriptions that were violated in the reasons array.
+If the activity is not suspicious, set isSuspicious to false.
 `,
 });
 
@@ -86,16 +88,16 @@ const detectCardMisuseFlow = ai.defineFlow(
         let description = '';
         switch(rule.field) {
             case 'payer_mismatch':
-                description = `Payer Mismatch > ${rule.value}%`;
+                description = `Payer name does not match cardholder for more than ${rule.value}% of transactions.`;
                 break;
             case 'transaction_amount':
-                description = `Transaction Amount ${rule.operator} ${rule.value}`;
+                description = `A transaction amount is ${rule.operator} ${rule.value}.`;
                 break;
             case 'transaction_count':
-                description = `Transaction Count in 24h ${rule.operator} ${rule.value}`;
+                description = `The number of transactions in a 24-hour period is ${rule.operator} ${rule.value}.`;
                 break;
             case 'stores_distance':
-                 description = `Impossible travel between stores > ${rule.value}km`;
+                 description = `Transactions occurred at stores more than ${rule.value}km apart in an impossible timeframe.`;
                  break;
         }
         return `${i + 1}. **${description}**`;
