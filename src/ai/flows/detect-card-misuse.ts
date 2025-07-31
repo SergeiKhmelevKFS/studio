@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for detecting potential discount card misuse.
@@ -113,34 +112,28 @@ const detectCardMisuseFlow = ai.defineFlow(
         cardTransactionMap.get(tx.cardRecordId)!.push(tx);
     });
 
-    const analysisPromises = cards
-      .map(card => {
-          if (!card.id) return null;
-          const cardTransactions = cardTransactionMap.get(card.id) || [];
-          if (cardTransactions.length === 0) return null;
+    const flaggedCards: z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'] = [];
 
-          const cardWithTransactions = {
-              ...card,
-              transactions: cardTransactions,
-          };
+    for (const card of cards) {
+        if (!card.id) continue;
+        const cardTransactions = cardTransactionMap.get(card.id) || [];
+        if (cardTransactions.length === 0) continue;
 
-          return async () => {
-            const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
-            if (output?.isSuspicious && output.reasons.length > 0) {
-                return {
-                    ...card,
-                    transactions: cardTransactions,
-                    reasons: output.reasons,
-                };
-            }
-            return null;
-          };
-      })
-      .filter(p => p !== null) as (() => Promise<z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'][number] | null>)[];
+        const cardWithTransactions = {
+            ...card,
+            transactions: cardTransactions,
+        };
 
-    const results = await Promise.all(analysisPromises.map(p => p()));
-    
-    const flaggedCards = results.filter(result => result !== null) as z.infer<typeof DetectCardMisuseOutputSchema>['flaggedCards'];
+        const { output } = await misuseDetectionPrompt({ card: cardWithTransactions, rulesText });
+
+        if (output?.isSuspicious && output.reasons.length > 0) {
+            flaggedCards.push({
+                ...card,
+                transactions: cardTransactions,
+                reasons: output.reasons,
+            });
+        }
+    }
 
     return { flaggedCards };
   }
