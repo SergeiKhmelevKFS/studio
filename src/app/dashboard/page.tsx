@@ -159,8 +159,8 @@ export default function DashboardPage() {
   }, [router]);
 
   const displayedRecords = useMemo(() => {
-    if (isReadOnly && hasSearchedMisuse && misuseReport) {
-      return misuseReport;
+    if (isReadOnly && hasSearchedMisuse) {
+      return misuseReport || [];
     }
     return records;
   }, [isReadOnly, hasSearchedMisuse, misuseReport, records]);
@@ -934,3 +934,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
