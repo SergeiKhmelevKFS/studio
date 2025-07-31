@@ -69,7 +69,8 @@ const misuseChartConfig = {
 const defaultRules: MisuseRule[] = [
     { id: '1', field: 'payer_mismatch', operator: '>', value: '50' },
     { id: '2', field: 'transaction_count', operator: '>', value: '3' },
-    { id: '3', field: 'stores_distance', operator: '>', value: '100' },
+    { id: '3', field: 'transaction_amount', operator: '>', value: '150' },
+    { id: '4', field: 'stores_distance', operator: '>', value: '100' },
 ];
 
 
@@ -144,27 +145,36 @@ export default function DashboardPage() {
     if (storedRules) {
         try {
             const parsedRules = JSON.parse(storedRules);
-            if (Array.isArray(parsedRules)) {
+            if (Array.isArray(parsedRules) && parsedRules.length > 0) {
                 setMisuseRules(parsedRules);
+            } else {
+              localStorage.setItem('misuseRules', JSON.stringify(defaultRules));
             }
         } catch (e) {
-            // If parsing fails, it might be the old string format.
-            // Ignore and use default structured rules.
             localStorage.setItem('misuseRules', JSON.stringify(defaultRules));
         }
+    } else {
+        localStorage.setItem('misuseRules', JSON.stringify(defaultRules));
     }
   }, [router]);
 
+  const displayedRecords = useMemo(() => {
+    if (isReadOnly && hasSearchedMisuse && misuseReport) {
+      return misuseReport;
+    }
+    return records;
+  }, [isReadOnly, hasSearchedMisuse, misuseReport, records]);
+  
   const filteredRecords = useMemo(() => {
-    if (!searchQuery) return records;
+    if (!searchQuery) return displayedRecords;
     const lowercasedQuery = searchQuery.toLowerCase();
-    return records.filter(
+    return displayedRecords.filter(
       (record) =>
         record.staffId?.toLowerCase().includes(lowercasedQuery) ||
         record.primaryCardholderName?.toLowerCase().includes(lowercasedQuery) ||
         record.primaryCardNumberBarcode?.toLowerCase().includes(lowercasedQuery)
     );
-  }, [records, searchQuery]);
+  }, [displayedRecords, searchQuery]);
 
   const handleSort = (column: SortableColumn) => {
     if (sortColumn === column) {
@@ -562,14 +572,15 @@ export default function DashboardPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           <p className="ml-4 text-muted-foreground">Analyzing transactions for potential misuse...</p>
         </div>
-      ) : hasSearchedMisuse ? (
+      ) : hasSearchedMisuse && isReadOnly ? (
         <>
             {misuseReport && misuseReport.length > 0 ? (
                 <div className="mb-8">
-                    <MisuseReportTable
-                    records={misuseReport}
-                    onViewTransactions={handleViewTransactions}
-                    />
+                     <MisuseReportTable
+                        records={misuseReport}
+                        onViewTransactions={handleViewTransactions}
+                        onViewRecord={handleViewOrEdit}
+                     />
                 </div>
             ) : (
                 <div className="flex items-center justify-center h-48 border rounded-lg bg-gray-50 mb-8">
@@ -578,7 +589,6 @@ export default function DashboardPage() {
             )}
         </>
       ) : (
-        !isReadOnly ? (
          <>
             <div className="flex items-center justify-between mt-4 mb-4">
                 <div className="relative">
@@ -600,7 +610,7 @@ export default function DashboardPage() {
                 onSort={handleSort}
                 sortColumn={sortColumn}
                 sortDirection={sortDirection}
-                isReadOnly={isReadOnly}
+                isReadOnly={!!isReadOnly}
                 onViewTransactions={handleViewTransactions}
             />
             <DataTablePagination
@@ -614,11 +624,6 @@ export default function DashboardPage() {
                 }}
             />
         </>
-        ) : (
-            <div className="flex items-center justify-center h-96 border rounded-lg bg-gray-50">
-              <p className="text-muted-foreground">Click "Search for Misuse" to begin.</p>
-          </div>
-        )
       )}
     </>
   );
@@ -866,9 +871,9 @@ export default function DashboardPage() {
         onAdd={handleAddCard}
         onLogout={handleLogout}
         onProfileClick={handleProfileClick}
-        isReadOnly={isReadOnly}
+        isReadOnly={!!isReadOnly}
         username={user?.username}
-        isAdmin={isAdmin}
+        isAdmin={!!isAdmin}
       />
       <main className="p-4 md:p-8">
         {isAdmin ? (
@@ -895,7 +900,7 @@ export default function DashboardPage() {
         onOpenChange={setIsSheetOpen}
         record={editingRecord}
         onSave={handleSave}
-        isReadOnly={isReadOnly}
+        isReadOnly={!!isReadOnly}
       />
       <ProfileSheet
         open={isProfileSheetOpen}

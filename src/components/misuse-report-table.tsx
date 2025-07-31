@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { List, AlertTriangle } from 'lucide-react';
+import { List, AlertTriangle, Eye } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 
@@ -22,9 +22,10 @@ export type MisuseReportRecord = CardRecord & {
 type MisuseReportTableProps = {
   records: MisuseReportRecord[];
   onViewTransactions: (record: CardRecord) => void;
+  onViewRecord: (record: CardRecord) => void;
 };
 
-export function MisuseReportTable({ records, onViewTransactions }: MisuseReportTableProps) {
+export function MisuseReportTable({ records, onViewTransactions, onViewRecord }: MisuseReportTableProps) {
   return (
     <Card>
         <CardHeader>
@@ -65,7 +66,7 @@ export function MisuseReportTable({ records, onViewTransactions }: MisuseReportT
                                     ))}
                                 </ul>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="space-x-2">
                                 <Button
                                 variant="outline"
                                 size="sm"
@@ -75,7 +76,18 @@ export function MisuseReportTable({ records, onViewTransactions }: MisuseReportT
                                 }}
                                 >
                                 <List className="mr-2 h-4 w-4" />
-                                View Transactions
+                                Transactions
+                                </Button>
+                                <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onViewRecord(record);
+                                }}
+                                >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Card
                                 </Button>
                             </TableCell>
                             </TableRow>
