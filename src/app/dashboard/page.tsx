@@ -10,7 +10,7 @@ import { CardTable } from '@/components/card-table';
 import { CardFormSheet } from '@/components/card-form-sheet';
 import { ProfileSheet } from '@/components/profile-sheet';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Download, UserPlus, Trash, List, AlertTriangle, FilePenLine } from 'lucide-react';
+import { Search, Loader2, Download, UserPlus, Trash, List, AlertTriangle, FilePenLine, XCircle } from 'lucide-react';
 import { DataTablePagination } from '@/components/data-table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -502,8 +502,8 @@ export default function DashboardPage() {
         let reasonIndex = 0;
 
         const report = flaggedCards.map(card => {
-            const reason = reasons[reasonIndex % reasons.length];
-            reasonIndex++;
+            const reasonIndex = Math.floor(Math.random() * reasons.length);
+            const reason = reasons[reasonIndex];
             return {
                 ...card,
                 reasons: [reason],
@@ -514,6 +514,11 @@ export default function DashboardPage() {
         setHasSearchedMisuse(true);
         setIsSearchingMisuse(false);
     }, 5000);
+  };
+  
+  const handleClearMisuseSearch = () => {
+    setHasSearchedMisuse(false);
+    setMisuseReport(null);
   };
 
   const handleSaveRules = (newRules: MisuseRule[]) => {
@@ -579,6 +584,12 @@ export default function DashboardPage() {
               )}
               Search for Misuse
             </Button>
+            {hasSearchedMisuse && (
+                 <Button onClick={handleClearMisuseSearch} variant="destructive">
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Clear Results
+                </Button>
+            )}
           </>
         )}
       </div>
