@@ -110,7 +110,7 @@ export function EditMisuseRulesSheet({
         <SheetHeader>
           <SheetTitle>Edit Misuse Detection Rules</SheetTitle>
           <SheetDescription>
-            Modify the rules used by the AI to flag potential card misuse. Changes will be saved locally in your browser.
+            Modify the rules used by the AI to flag potential card misuse.
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 space-y-4 py-4 overflow-y-auto">
