@@ -158,11 +158,8 @@ export default function DashboardPage() {
   }, [router]);
 
   const displayedRecords = useMemo(() => {
-    if (isReadOnly && hasSearchedMisuse) {
-      return misuseReport || [];
-    }
     return records;
-  }, [isReadOnly, hasSearchedMisuse, misuseReport, records]);
+  }, [records]);
   
   const filteredRecords = useMemo(() => {
     if (!searchQuery) return displayedRecords;
@@ -601,40 +598,44 @@ export default function DashboardPage() {
             )}
         </>
       ) : (
-         <>
-            <div className="flex items-center justify-between mt-4 mb-4">
-                <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    placeholder="Search by Staff ID, Cardholder or Card Number..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setPage(0);
-                    }}
-                    className="w-full max-w-sm pl-10"
-                />
-                </div>
-            </div>
-            <CardTable
-                records={paginatedRecords}
-                onViewOrEdit={handleViewOrEdit}
-                onSort={handleSort}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                isReadOnly={!!isReadOnly}
-                onViewTransactions={handleViewTransactions}
-            />
-            <DataTablePagination
-                count={sortedRecords.length}
-                page={page}
-                onPageChange={setPage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(value) => {
-                    setRowsPerPage(parseInt(value, 10));
-                    setPage(0);
-                }}
-            />
+        <>
+          {!isReadOnly && (
+            <>
+              <div className="flex items-center justify-between mt-4 mb-4">
+                  <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                      placeholder="Search by Staff ID, Cardholder or Card Number..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setPage(0);
+                      }}
+                      className="w-full max-w-sm pl-10"
+                  />
+                  </div>
+              </div>
+              <CardTable
+                  records={paginatedRecords}
+                  onViewOrEdit={handleViewOrEdit}
+                  onSort={handleSort}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  isReadOnly={!!isReadOnly}
+                  onViewTransactions={handleViewTransactions}
+              />
+              <DataTablePagination
+                  count={sortedRecords.length}
+                  page={page}
+                  onPageChange={setPage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(value) => {
+                      setRowsPerPage(parseInt(value, 10));
+                      setPage(0);
+                  }}
+              />
+            </>
+          )}
         </>
       )}
     </>
@@ -884,8 +885,8 @@ export default function DashboardPage() {
         onLogout={handleLogout}
         onProfileClick={handleProfileClick}
         isReadOnly={!!isReadOnly}
-        username={user?.username}
         isAdmin={!!isAdmin}
+        username={user?.username}
       />
       <main className="p-4 md:p-8">
         {isAdmin ? (
@@ -946,3 +947,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
