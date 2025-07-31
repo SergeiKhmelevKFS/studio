@@ -492,20 +492,27 @@ export default function DashboardPage() {
     setMisuseReport(null);
 
     setTimeout(() => {
-      const flaggedCards = [
-        records.find(c => c.id === 'misuse-payer'),
-        records.find(c => c.id === 'misuse-frequency'),
-        records.find(c => c.id === 'misuse-geo'),
-      ].filter(Boolean) as CardRecord[];
+        const flaggedCards = [
+            records.find(c => c.id === 'misuse-payer'),
+            records.find(c => c.id === 'misuse-frequency'),
+            records.find(c => c.id === 'misuse-geo'),
+        ].filter(Boolean) as CardRecord[];
 
-      const report = flaggedCards.map(card => ({
-        ...card,
-        reasons: ['This is a sample reason for flagging.'],
-      }));
-      
-      setMisuseReport(report);
-      setHasSearchedMisuse(true);
-      setIsSearchingMisuse(false);
+        const reasons = ['Payer mismatch', 'transactions count', 'transactions amount'];
+        let reasonIndex = 0;
+
+        const report = flaggedCards.map(card => {
+            const reason = reasons[reasonIndex % reasons.length];
+            reasonIndex++;
+            return {
+                ...card,
+                reasons: [reason],
+            };
+        });
+        
+        setMisuseReport(report);
+        setHasSearchedMisuse(true);
+        setIsSearchingMisuse(false);
     }, 5000);
   };
 
